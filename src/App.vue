@@ -6,9 +6,12 @@ import ScanView from './views/ScanView.vue'
 import CollectionView from './views/CollectionView.vue'
 import StoreView from './views/StoreView.vue'
 import CommunityView from './views/CommunityView.vue'
+import LoginView from './views/LoginView.vue'
 
 const museum = createMuseumStore()
 provide('museum', museum)
+
+const authed = ref(localStorage.getItem('mq_authed') === '1')
 
 const tabs = [
   { key: 'home', label: '探索', icon: '◇' },
@@ -29,10 +32,18 @@ const views = {
 }
 
 const ActiveView = computed(() => views[current.value] || HomeView)
+
+function onLoginSuccess(payload) {
+  authed.value = true
+  localStorage.setItem('mq_authed', '1')
+  if (payload?.username) localStorage.setItem('mq_user', payload.username)
+}
 </script>
 
 <template>
-  <div class="shell">
+  <LoginView v-if="!authed" @success="onLoginSuccess" />
+
+  <div v-else class="shell">
     <header class="top-bar">
       <h1 class="title">Museum Quest</h1>
       <div class="points" aria-live="polite">

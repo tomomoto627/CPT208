@@ -7,32 +7,73 @@ import { reactive, computed } from 'vue'
 const initialArtifacts = [
   {
     id: 'bronze-ding',
-    name: '青铜鼎',
+    name: '荷鲁斯护王像（猎隼神）',
     hallId: 'h1',
-    hallName: '青铜时代',
+    hallName: '古代雕塑',
     story:
-      '礼器代表，用于祭祀与宴飨。鼎的三足与纹饰反映了当时的铸造工艺与社会等级。',
+      '古埃及晚期的石雕作品，荷鲁斯以猎隼形象守护法老，象征王权与神祇庇佑。雕像的比例与细部刻画体现了当时对秩序与永恒的追求。',
     points: 30,
-    modelGlb: '/models/DamagedHelmet.glb',
+    modelGlb: '/models/HorusFalcon.glb',
   },
   {
     id: 'porcelain-vase',
-    name: '青花缠枝纹瓶',
+    name: '龙纹碗',
     hallId: 'h2',
     hallName: '瓷韵千年',
     story:
-      '青花发色浓艳，缠枝莲寓意生生不息。此类器物多外销，是海上丝绸之路的见证。',
+      '高温烧造的釉面器皿，纹饰以龙为主题，寓意守护、权威与吉祥。器形与装饰的结合兼具日用与礼仪属性，是工艺、审美与社会观念的缩影。',
     points: 25,
-    modelGlb: '/models/Duck.glb',
+    modelGlb: '/models/BowlWithDragons.glb',
   },
   {
     id: 'jade-bi',
-    name: '谷纹玉璧',
+    name: '阿芙罗狄忒与厄洛斯像',
+    hallId: 'h1',
+    hallName: '古代雕塑',
+    story:
+      '古典时期的石雕传统延续至希腊化/罗马世界，常以神话母题呈现爱与美的理想形象。人物姿态与衣褶处理强调体量与光影，体现古代艺术对人体比例的研究。',
+    points: 20,
+    modelGlb: '/models/AphroditeEros.glb',
+  },
+  {
+    id: 'urn-ingirsu',
+    name: '乌尔-宁吉尔苏像（苏美尔）',
+    hallId: 'h3',
+    hallName: '两河文明',
+    story:
+      '约公元前 2080 年的两河流域雕像，人物双手合拢呈祈祷姿，常见于神庙奉献物。简洁有力的体块与刻写信息，记录了权力、信仰与城市国家的秩序。',
+    points: 28,
+    modelGlb: '/models/UrNingirsuStatue.glb',
+  },
+  {
+    id: 'bronze-bull-head',
+    name: '青铜牛首饰件',
     hallId: 'h1',
     hallName: '青铜时代',
-    story: '玉璧象征天圆，谷纹祈求丰年。汉代葬玉与礼制结合，体现「以玉比德」的观念。',
-    points: 20,
-    modelGlb: '/models/BoomBox.glb',
+    story:
+      '早期金属器上常见动物形象装饰，牛首象征力量与守护，也可能用于器物把手、挂饰或礼仪构件。铸造与打磨痕迹能直观呈现古代冶金与造型能力。',
+    points: 18,
+    modelGlb: '/models/BronzeBullHead.glb',
+  },
+  {
+    id: 'silver-gilt-bowl',
+    name: '鎏金银碗',
+    hallId: 'h2',
+    hallName: '金银工艺',
+    story:
+      '以银为胎、表面鎏金的器皿，兼具贵金属光泽与耐久性，常与宴飨、祭献或身份象征相关。金银器的锤揲与鎏金工艺体现了高超的金工技术与跨文化交流。',
+    points: 22,
+    modelGlb: '/models/SilverGiltBowl.glb',
+  },
+  {
+    id: 'gelede-helmet-mask',
+    name: '格莱德（Gẹ̀lẹ̀dẹ́）头盔面具',
+    hallId: 'h3',
+    hallName: '仪式与面具',
+    story:
+      '西非约鲁巴文化的仪式面具，多用于节庆表演与社区仪式，强调对女性力量与社会和谐的敬意。木雕与彩绘将人物与象征元素组合，呈现故事性与公共审美。',
+    points: 24,
+    modelGlb: '/models/GeledeHelmetMask.glb',
   },
 ]
 
@@ -47,15 +88,15 @@ const initialZones = [
   },
   {
     id: 'h2',
-    name: '瓷韵千年',
-    hint: '互动展柜较多',
+    name: '瓷韵与金银工艺',
+    hint: '器物细节丰富',
     lng: 120.7414,
     lat: 31.2736,
   },
   {
     id: 'h3',
-    name: '书画长廊',
-    hint: '光线较暗请注意',
+    name: '雕塑与仪式',
+    hint: '请留意材质纹理与刻痕',
     lng: 120.7374,
     lat: 31.2742,
   },

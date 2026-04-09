@@ -13,6 +13,12 @@ const cameraError = ref('')
 const cameraStarting = ref(false)
 const mirrorVideo = ref(false)
 
+const storySpeaking = ref(false)
+const storySpeechError = ref('')
+const storyVoices = ref([])
+const selectedVoiceURI = ref(localStorage.getItem('mq_story_voice_uri') || '')
+let storyUtter = null
+
 /** 递增以作废进行中的 getUserMedia（快速切走 Tab 时避免把旧流绑回 video） */
 let cameraEpoch = 0
 
@@ -157,12 +163,60 @@ onDeactivated(() => {
 
 onUnmounted(() => {
   stopCamera()
+  stopStorySpeech()
 })
+
+function loadStoryVoices() {
+  if (typeof window === 'undefined' || !window.speechSynthesis?.getVoices) return
+  const vs = window.speechSynthesis.getVoices() || []
+  storyVoices.value = vs
+  if (!selectedVoiceURI.value && vs.length) {
+    const best = pickDefaultChineseVoice(vs)
+    if (best?.voiceURI) selectedVoiceURI.value = best.voiceURI
+  }
+}
+
+function pickDefaultChineseVoice(vs) {
+  const preferGoogleMandarinCN = (v) => {
+    const name = (v.name || '').toLowerCase()
+    const lang = (v.lang || '').toLowerCase()
+    const isGoogle = name.includes('google')
+    const isMandarin =
+      /普通话|中國大陸|中国大陆|mandarin/i.test(v.name || '') || name.includes('putonghua')
+    return isGoogle && isMandarin && lang.startsWith('zh-cn')
+  }
+
+  const exact = vs.find(preferGoogleMandarinCN)
+  if (exact) return exact
+
+  const isZh = (v) =>
+    (v.lang || '').toLowerCase().startsWith('zh') ||
+    /zh|中文|普通话|國語|国语|mandarin/i.test(v.name || '')
+
+  const zhs = vs.filter(isZh)
+  const pool = zhs.length ? zhs : vs
+
+  const score = (v) => {
+    const name = (v.name || '').toLowerCase()
+    const lang = (v.lang || '').toLowerCase()
+    let s = 0
+    if (lang.startsWith('zh-cn')) s += 40
+    if (lang.startsWith('zh')) s += 10
+    if (/xiaoxiao|yunxi|yunyang|xiaoyi|xiaohan|xiaomo|xiaorui|xiaoqiu/.test(name)) s += 60
+    if (/microsoft|edge|natural/.test(name)) s += 30
+    if (/google/.test(name)) s += 20
+    if (/siri|ting-ting|meijia|li-mu/.test(name)) s += 10
+    return s
+  }
+
+  return [...pool].sort((a, b) => score(b) - score(a))[0] || null
+}
 
 watch(showResult, async (open) => {
   if (!open) {
     modelViewerError.value = ''
     modelViewerLoading.value = false
+    stopStorySpeech()
     if (videoRef.value && stream.value) {
       try {
         await videoRef.value.play()
@@ -171,6 +225,7 @@ watch(showResult, async (open) => {
       }
     }
   } else {
+    loadStoryVoices()
     const art = state.artifacts.find((a) => a.id === selectedId.value)
     if (art?.modelGlb) {
       modelViewerError.value = ''
@@ -206,6 +261,69 @@ function closeResult() {
 
 const currentArt = () =>
   state.artifacts.find((a) => a.id === selectedId.value)
+
+function stopStorySpeech() {
+  storySpeechError.value = ''
+  storySpeaking.value = false
+  storyUtter = null
+  try {
+    window.speechSynthesis?.cancel?.()
+  } catch {
+    /* ignore */
+  }
+}
+
+function onVoiceChange() {
+  localStorage.setItem('mq_story_voice_uri', selectedVoiceURI.value || '')
+  if (storySpeaking.value) {
+    stopStorySpeech()
+    toggleStorySpeech()
+  }
+}
+
+function toggleStorySpeech() {
+  storySpeechError.value = ''
+  const art = currentArt()
+  const text = art?.story?.trim?.() || ''
+  if (!text) return
+
+  if (storySpeaking.value) {
+    stopStorySpeech()
+    return
+  }
+
+  if (typeof window === 'undefined' || !window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+    storySpeechError.value = '当前浏览器不支持语音播放'
+    return
+  }
+
+  stopStorySpeech()
+  const u = new SpeechSynthesisUtterance(text)
+  u.lang = 'zh-CN'
+  const v = storyVoices.value.find((x) => x.voiceURI === selectedVoiceURI.value)
+  if (v) u.voice = v
+  u.rate = 1
+  u.pitch = 1
+  u.volume = 1
+  u.onend = () => {
+    storySpeaking.value = false
+    storyUtter = null
+  }
+  u.onerror = () => {
+    storySpeaking.value = false
+    storyUtter = null
+    storySpeechError.value = '语音播放失败（可能被系统/浏览器限制）'
+  }
+  storyUtter = u
+  storySpeaking.value = true
+  try {
+    window.speechSynthesis.speak(u)
+  } catch {
+    storySpeaking.value = false
+    storyUtter = null
+    storySpeechError.value = '语音播放失败'
+  }
+}
 </script>
 
 <template>
@@ -254,7 +372,39 @@ const currentArt = () =>
 
     <div v-if="showResult && currentArt()" class="sheet" @click.self="closeResult">
       <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="scan-title">
-        <h2 id="scan-title" class="sheet-title">{{ currentArt().name }}</h2>
+        <div class="sheet-head">
+          <h2 id="scan-title" class="sheet-title">{{ currentArt().name }}</h2>
+          <div class="head-tools">
+            <label class="voice">
+              <span class="sr-only">朗读声音</span>
+              <select
+                v-model="selectedVoiceURI"
+                class="voice-select"
+                :disabled="!storyVoices.length"
+                @change="onVoiceChange"
+                @mousedown="loadStoryVoices"
+                @touchstart.passive="loadStoryVoices"
+              >
+                <option value="" disabled>
+                  {{ storyVoices.length ? '选择声音' : '无可用语音' }}
+                </option>
+                <option v-for="v in storyVoices" :key="v.voiceURI" :value="v.voiceURI">
+                  {{ v.name }}（{{ v.lang }}）
+                </option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              class="story-btn"
+              :class="{ on: storySpeaking }"
+              :aria-pressed="storySpeaking ? 'true' : 'false'"
+              @click="toggleStorySpeech"
+            >
+              {{ storySpeaking ? '停止' : '播放故事' }}
+            </button>
+          </div>
+        </div>
         <p class="sheet-sub">{{ currentArt().hallName }} · +{{ currentArt().points }} 积分（首次）</p>
 
         <div v-if="currentArt().modelGlb" class="model-block">
@@ -284,6 +434,7 @@ const currentArt = () =>
         </div>
 
         <p class="sheet-story">{{ currentArt().story }}</p>
+        <p v-if="storySpeechError" class="story-error" role="status">{{ storySpeechError }}</p>
         <div class="sheet-actions">
           <button type="button" class="btn-secondary" @click="closeResult">关闭</button>
           <button type="button" class="btn-primary" @click="closeResult">收入收藏</button>
@@ -486,9 +637,79 @@ const currentArt = () =>
   -webkit-overflow-scrolling: touch;
 }
 
+.sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.head-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.voice {
+  display: inline-flex;
+  align-items: center;
+}
+
+.voice-select {
+  min-height: 36px;
+  max-width: 150px;
+  padding: 0 34px 0 10px;
+  border-radius: 999px;
+  background: var(--mq-surface);
+  border: 1px solid var(--mq-border);
+  color: var(--mq-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239aa8a2' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.voice-select:disabled {
+  opacity: 0.55;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .sheet-title {
   font-size: 1.25rem;
-  margin-bottom: 6px;
+  margin-bottom: 0;
+}
+
+.story-btn {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--mq-surface);
+  border: 1px solid var(--mq-border);
+  color: var(--mq-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.story-btn.on {
+  background: rgba(201, 162, 39, 0.18);
+  border-color: rgba(201, 162, 39, 0.35);
+  color: var(--mq-accent);
 }
 
 .sheet-sub {
@@ -560,6 +781,14 @@ const currentArt = () =>
   line-height: 1.6;
   color: var(--mq-text-muted);
   margin-bottom: 20px;
+}
+
+.story-error {
+  margin-top: -10px;
+  margin-bottom: 16px;
+  font-size: 0.8rem;
+  color: #e8a598;
+  line-height: 1.45;
 }
 
 .sheet-actions {
