@@ -1,148 +1,214 @@
-<script setup>
-import { ref } from 'vue'
+﻿<script setup>
+import { ref } from "vue";
+import heroBg from "@/assets/loginbackground.png";
 
-const emit = defineEmits(['success'])
+const emit = defineEmits(["success"]);
 
-const username = ref('')
-const password = ref('')
-const error = ref('')
-const submitting = ref(false)
+const username = ref("");
+const password = ref("");
+const error = ref("");
+const submitting = ref(false);
 
 function clearError() {
-  error.value = ''
+  error.value = "";
 }
 
 async function submit() {
-  if (submitting.value) return
-  clearError()
+  if (submitting.value) return;
+  clearError();
 
-  const u = username.value.trim()
-  const p = password.value
+  const u = username.value.trim();
+  const p = password.value;
 
   if (!u || !p) {
-    error.value = '请输入账号和密码'
-    return
+    error.value = "Please enter email and password.";
+    return;
   }
 
-  submitting.value = true
+  submitting.value = true;
   try {
-    await new Promise((r) => setTimeout(r, 180))
-    if (u === 'test' && p === '123456') {
-      emit('success', { username: u })
-      return
+    await new Promise((r) => setTimeout(r, 180));
+    if (u === "test" && p === "123456") {
+      emit("success", { username: u });
+      return;
     }
-    error.value = '账号或密码错误（提示：test / 123456）'
+    error.value = "Invalid credentials. Try test / 123456.";
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
 </script>
 
 <template>
-  <div class="login">
-    <div class="hero">
-      <div class="brand">
-        <div class="badge" aria-hidden="true">◇</div>
-        <div class="brand-text">
-          <h1 class="title">Museum Quest</h1>
-          <p class="subtitle">登录后开始你的博物馆探索</p>
-        </div>
+  <div class="login-screen">
+    <section class="login-hero" aria-label="Welcome">
+      <div
+        class="hero-bg"
+        :style="{ backgroundImage: `url(${heroBg})` }"
+        aria-hidden="true"
+      />
+      <div class="hero-copy">
+        <p class="welcome">Welcome back</p>
+        <h1 class="hero-title">Log in to continue</h1>
+        <p class="hero-desc">Access your collections and continue exploring.</p>
       </div>
-    </div>
+    </section>
 
-    <section class="card" aria-label="登录表单">
-      <label class="field">
-        <span class="label">账号</span>
-        <input
-          v-model="username"
-          class="input"
-          type="text"
-          inputmode="text"
-          autocomplete="username"
-          placeholder="请输入账号（test）"
-          @input="clearError"
-          @keydown.enter.prevent="submit"
-        />
-      </label>
+    <section class="login-form-section" aria-label="Login form">
+      <form class="form" @submit.prevent="submit">
+        <label class="field">
+          <span class="label">Email</span>
+          <div class="input-wrap">
+            <span class="left-icon" aria-hidden="true">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="6" width="18" height="12" rx="2" />
+                <path d="M4 8l8 6 8-6" />
+              </svg>
+            </span>
+            <input
+              v-model="username"
+              class="input"
+              type="text"
+              inputmode="email"
+              autocomplete="username"
+              placeholder="name@university.edu"
+              @input="clearError"
+              @keydown.enter.prevent="submit"
+            />
+          </div>
+        </label>
 
-      <label class="field">
-        <span class="label">密码</span>
-        <input
-          v-model="password"
-          class="input"
-          type="password"
-          autocomplete="current-password"
-          placeholder="请输入密码（123456）"
-          @input="clearError"
-          @keydown.enter.prevent="submit"
-        />
-      </label>
+        <div class="row-head">
+          <span class="label">Password</span>
+          <button type="button" class="link-btn">Forgot password?</button>
+        </div>
+        <label class="field">
+          <div class="input-wrap">
+            <span class="left-icon" aria-hidden="true">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none">
+                <rect x="5" y="11" width="14" height="9" rx="2" />
+                <path d="M8 11V8a4 4 0 1 1 8 0v3" />
+              </svg>
+            </span>
+            <input
+              v-model="password"
+              class="input"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              @input="clearError"
+              @keydown.enter.prevent="submit"
+            />
+            <span class="right-icon" aria-hidden="true">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
+                />
+                <circle cx="12" cy="12" r="2.75" />
+              </svg>
+            </span>
+          </div>
+        </label>
 
-      <p v-if="error" class="error" role="alert">{{ error }}</p>
+        <p v-if="error" class="error" role="alert">{{ error }}</p>
 
-      <button type="button" class="primary" :disabled="submitting" @click="submit">
-        {{ submitting ? '正在登录…' : '登录' }}
-      </button>
+        <button type="submit" class="primary" :disabled="submitting">
+          {{ submitting ? "Logging in..." : "Log In" }}
+        </button>
 
-      <p class="hint">
-        仅前端演示：账号 <span class="mono">test</span>，密码 <span class="mono">123456</span>
-      </p>
+        <div class="divider" aria-hidden="true"><span>or</span></div>
+
+        <button type="button" class="social">
+          <span class="g">G</span>
+          <span>Continue with Google</span>
+        </button>
+
+        <p class="signup">
+          Don't have an account?
+          <button type="button" class="link-btn signup-btn">Sign Up</button>
+        </p>
+      </form>
     </section>
   </div>
 </template>
 
 <style scoped>
-.login {
+.login-screen {
   min-height: 100dvh;
-  padding: max(20px, var(--mq-safe-top)) 16px max(28px, var(--mq-safe-bottom));
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 18px;
-  background: radial-gradient(900px 520px at 20% 0%, rgba(201, 162, 39, 0.15), transparent 55%),
-    linear-gradient(165deg, #15221c 0%, var(--mq-bg) 55%);
+  background: #f4eee3;
+  color: #2f2a24;
+  overflow: hidden;
 }
 
-.hero {
-  padding: 8px 4px 0;
-}
-
-.brand {
+.login-hero {
+  position: relative;
+  flex: 0 0 42%;
+  min-height: 260px;
+  padding: max(30px, calc(var(--mq-safe-top) + 18px)) 18px 18px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.badge {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  color: var(--mq-accent);
-  background: rgba(201, 162, 39, 0.14);
-  border: 1px solid rgba(201, 162, 39, 0.22);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
-  font-size: 1.25rem;
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: 118% auto;
+  background-position: right top;
+  opacity: 0.23;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.title {
-  font-size: 1.35rem;
-  letter-spacing: 0.02em;
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 56%;
+  margin-left: 24px;
+  margin-top: 22px;
 }
 
-.subtitle {
-  margin-top: 2px;
-  font-size: 0.88rem;
-  color: var(--mq-text-muted);
+.welcome {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #b17d26;
+  font-weight: 600;
 }
 
-.card {
-  padding: 18px;
-  border-radius: 18px;
-  background: rgba(26, 38, 34, 0.72);
-  border: 1px solid var(--mq-border);
-  backdrop-filter: blur(10px);
+.hero-title {
+  margin: 8px 0 0;
+  font-size: 2.35rem;
+  line-height: 1.03;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hero-desc {
+  margin: 10px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #5b5246;
+}
+
+.login-form-section {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  background: #f8f3ea;
+  border-top: 1px solid rgba(130, 112, 88, 0.15);
+  border-radius: 24px 24px 0 0;
+  padding: 20px 16px max(16px, var(--mq-safe-bottom));
+  display: flex;
+}
+
+.form {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -154,66 +220,142 @@ async function submit() {
   gap: 8px;
 }
 
+.row-head {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .label {
-  font-size: 0.85rem;
-  color: var(--mq-text-muted);
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: #2f2a24;
+}
+
+.link-btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #b17d26;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.input-wrap {
+  min-height: 48px;
+  border: 1px solid rgba(130, 112, 88, 0.24);
+  border-radius: 10px;
+  background: #f9f5ee;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.left-icon,
+.right-icon {
+  color: #b08f56;
+  font-size: 0.84rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.right-icon {
+  margin-left: auto;
+}
+
+.icon-svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .input {
-  min-height: var(--mq-tap-min);
-  padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid var(--mq-border);
-  background: rgba(36, 51, 48, 0.92);
-  color: var(--mq-text);
+  flex: 1;
+  border: 0;
   outline: none;
+  background: transparent;
+  color: #2f2a24;
+  min-width: 0;
+  font-size: 0.95rem;
 }
 
 .input::placeholder {
-  color: var(--mq-text-muted);
-  opacity: 0.75;
-}
-
-.input:focus {
-  border-color: rgba(201, 162, 39, 0.45);
-  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.12);
+  color: #9a8d7d;
 }
 
 .error {
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(255, 138, 138, 0.1);
-  border: 1px solid rgba(255, 138, 138, 0.22);
-  color: rgba(255, 205, 205, 0.95);
-  font-size: 0.88rem;
-  line-height: 1.45;
+  margin: 0;
+  font-size: 0.84rem;
+  color: #b14545;
+  line-height: 1.35;
 }
 
 .primary {
-  min-height: 52px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #d4b03a, var(--mq-accent));
-  color: #1a1508;
-  font-size: 1.02rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  box-shadow: 0 4px 20px rgba(201, 162, 39, 0.35);
+  margin-top: 2px;
+  min-height: 50px;
+  border-radius: 10px;
+  border: 0;
+  background: #b9822c;
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 700;
 }
 
 .primary:disabled {
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
-.hint {
-  margin-top: 4px;
-  font-size: 0.78rem;
-  color: var(--mq-text-muted);
+.divider {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #76695b;
+  font-size: 0.88rem;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(130, 112, 88, 0.28);
+}
+
+.social {
+  min-height: 48px;
+  border-radius: 10px;
+  border: 1px solid rgba(130, 112, 88, 0.45);
+  background: #f8f3ea;
+  color: #2f2a24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.g {
+  color: #4285f4;
+  font-weight: 700;
+}
+
+.signup {
+  margin: 2px 0 0;
   text-align: center;
+  font-size: 0.88rem;
+  color: #3f382f;
 }
 
-.mono {
-  font-variant-numeric: tabular-nums;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
-  color: var(--mq-text);
+.signup-btn {
+  margin-left: 4px;
+  font-size: 0.9rem;
 }
 </style>

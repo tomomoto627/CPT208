@@ -192,12 +192,9 @@ export function createMuseumStore() {
     if (p.liked) {
       p.liked = false
       p.likes = Math.max(0, p.likes - 1)
-      state.points = Math.max(0, state.points - 2)
     } else {
       p.liked = true
       p.likes += 1
-      state.points += 2
-      showToast('点赞 +2 积分')
     }
   }
 

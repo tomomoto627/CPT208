@@ -336,14 +336,14 @@ onDeactivated(() => {
 }
 
 .map-overlay.error {
-  background: rgba(15, 23, 20, 0.88);
+  background: rgba(250, 243, 233, 0.92);
   color: var(--mq-text);
   line-height: 1.5;
   pointer-events: auto;
 }
 
 .map-overlay.muted {
-  background: rgba(15, 23, 20, 0.55);
+  background: rgba(250, 243, 233, 0.72);
   color: var(--mq-text-muted);
 }
 

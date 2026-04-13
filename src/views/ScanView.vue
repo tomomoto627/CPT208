@@ -461,7 +461,7 @@ function toggleStorySpeech() {
   position: relative;
   height: 240px;
   border-radius: var(--mq-radius);
-  background: #0a0f0d;
+  background: #FAF3E9;
   border: 1px solid var(--mq-border);
   overflow: hidden;
 }
@@ -490,7 +490,7 @@ function toggleStorySpeech() {
   background: radial-gradient(
     ellipse at center,
     transparent 30%,
-    rgba(10, 15, 13, 0.45) 100%
+    rgba(250, 243, 233, 0.45) 100%
   );
 }
 
@@ -556,7 +556,7 @@ function toggleStorySpeech() {
   justify-content: center;
   gap: 12px;
   padding: 16px;
-  background: rgba(10, 15, 13, 0.85);
+  background: rgba(250, 243, 233, 0.9);
   font-size: 0.88rem;
   color: var(--mq-text-muted);
   text-align: center;
@@ -617,7 +617,7 @@ function toggleStorySpeech() {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(250, 243, 233, 0.55);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -736,7 +736,7 @@ function toggleStorySpeech() {
   height: min(42vh, 300px);
   border-radius: 12px;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #1a2822 0%, #0a0f0d 70%);
+  background: radial-gradient(ellipse at center, #f5ece0 0%, #FAF3E9 70%);
 }
 
 .model-loading,

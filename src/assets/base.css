@@ -1,13 +1,13 @@
 :root {
   --mq-bg: #0f1714;
-  --mq-bg-elevated: #1a2622;
-  --mq-surface: #243330;
-  --mq-surface-soft: #2d3d38;
+  --mq-bg-elevated: #f5ece0;
+  --mq-surface: #efe3d5;
+  --mq-surface-soft: #e8d8c7;
   --mq-accent: #c9a227;
   --mq-accent-soft: rgba(201, 162, 39, 0.2);
-  --mq-text: #e8ebe9;
-  --mq-text-muted: #9aa8a2;
-  --mq-border: rgba(255, 255, 255, 0.08);
+  --mq-text: #2f2a24;
+  --mq-text-muted: #6f655a;
+  --mq-border: rgba(47, 42, 36, 0.12);
   --mq-safe-top: env(safe-area-inset-top, 0px);
   --mq-safe-bottom: env(safe-area-inset-bottom, 0px);
   --mq-nav-h: 56px;
