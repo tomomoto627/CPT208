@@ -1,11 +1,21 @@
 <script setup>
-import { ref, inject, onActivated, onDeactivated, onUnmounted, nextTick, watch } from 'vue'
+import { ref, reactive, inject, onActivated, onDeactivated, onUnmounted, nextTick, watch } from 'vue'
+import { buildApiUrl, streamFetch } from '@/utils/api'
 
 const { state, scanArtifact } = inject('museum')
 const selectedId = ref('porcelain-vase')
 const showResult = ref(false)
 const modelViewerError = ref('')
 const modelViewerLoading = ref(false)
+
+const showChat = ref(false)
+const chatSessionId = ref('')
+const chatInput = ref('')
+const chatSending = ref(false)
+const chatError = ref('')
+const chatMessages = ref([])
+const chatBodyRef = ref(null)
+let chatScrollRaf = 0
 
 const videoRef = ref(null)
 const stream = ref(null)
@@ -164,7 +174,21 @@ onDeactivated(() => {
 onUnmounted(() => {
   stopCamera()
   stopStorySpeech()
+  if (chatScrollRaf) {
+    cancelAnimationFrame(chatScrollRaf)
+    chatScrollRaf = 0
+  }
 })
+
+function scheduleChatScrollToBottom() {
+  if (chatScrollRaf) return
+  chatScrollRaf = requestAnimationFrame(() => {
+    chatScrollRaf = 0
+    const el = chatBodyRef.value
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  })
+}
 
 function loadStoryVoices() {
   if (typeof window === 'undefined' || !window.speechSynthesis?.getVoices) return
@@ -261,6 +285,78 @@ function closeResult() {
 
 const currentArt = () =>
   state.artifacts.find((a) => a.id === selectedId.value)
+
+function openChat() {
+  chatError.value = ''
+  showChat.value = true
+  if (!chatMessages.value.length && currentArt()) {
+    chatMessages.value = [
+      {
+        role: 'assistant',
+        content: `你可以问我关于「${currentArt().name}」的用途、历史背景、工艺特点、文化意义等。`,
+      },
+    ]
+  }
+  nextTick(() => scheduleChatScrollToBottom())
+}
+
+function closeChat() {
+  showChat.value = false
+}
+
+async function sendChat() {
+  const q = chatInput.value.trim()
+  if (!q || chatSending.value) return
+
+  const art = currentArt()
+  chatError.value = ''
+  chatSending.value = true
+  chatMessages.value = chatMessages.value.concat({ role: 'user', content: q })
+  chatInput.value = ''
+  scheduleChatScrollToBottom()
+
+  // 插入占位的 assistant 消息，流式接收时逐字符追加
+  const aiMsg = reactive({ role: 'assistant', content: '', streaming: true })
+  chatMessages.value.push(aiMsg)
+  scheduleChatScrollToBottom()
+
+  try {
+    await streamFetch(
+      '/api/agent/chat',
+      {
+        method: 'POST',
+        body: {
+          stream: true,
+          mode: 'sse',
+          sessionId: chatSessionId.value || undefined,
+          artifact: art
+            ? {
+                id: art.id,
+                name: art.name,
+                hallName: art.hallName,
+                story: art.story,
+              }
+            : undefined,
+          question: q,
+        },
+        mode: 'sse', // 若后端是 SSE，则改为 'sse'
+      },
+      (ch) => {
+        aiMsg.content += ch
+        scheduleChatScrollToBottom()
+      }
+    )
+  } catch (e) {
+    chatError.value = e?.message || '发送失败'
+    aiMsg.content += '\n\n（错误）' + (e?.message || '发送失败')
+    scheduleChatScrollToBottom()
+  } finally {
+    aiMsg.streaming = false
+    chatSending.value = false
+    scheduleChatScrollToBottom()
+  }
+}
+
 
 function stopStorySpeech() {
   storySpeechError.value = ''
@@ -437,8 +533,48 @@ function toggleStorySpeech() {
         <p v-if="storySpeechError" class="story-error" role="status">{{ storySpeechError }}</p>
         <div class="sheet-actions">
           <button type="button" class="btn-secondary" @click="closeResult">关闭</button>
+          <button type="button" class="btn-secondary" @click="openChat">问问AI</button>
           <button type="button" class="btn-primary" @click="closeResult">收入收藏</button>
         </div>
+      </div>
+    </div>
+
+    
+    
+    <div v-if="showChat" class="chat-sheet" @click.self="closeChat">
+      <div class="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chat-title">
+        <div class="chat-head">
+          <div class="chat-title-wrap">
+            <h3 id="chat-title" class="chat-title">AI 讲解</h3>
+            <p class="chat-sub">当前文物：{{ currentArt()?.name }}</p>
+          </div>
+          <button type="button" class="chat-close" @click="closeChat">关闭</button>
+        </div>
+
+        <div ref="chatBodyRef" class="chat-body" aria-label="对话内容">
+          <div
+            v-for="(m, idx) in chatMessages"
+            :key="idx"
+            class="bubble"
+            :class="m.role === 'user' ? 'me' : 'ai'"
+          >
+            {{ m.content }}
+          </div>
+          <p v-if="chatError" class="chat-error">{{ chatError }}</p>
+        </div>
+
+        <form class="chat-foot" @submit.prevent="sendChat">
+          <input
+            v-model="chatInput"
+            class="chat-input"
+            type="text"
+            placeholder="问点什么，比如：它有什么用途？"
+            :disabled="chatSending"
+          />
+          <button type="submit" class="chat-send" :disabled="chatSending || !chatInput.trim()">
+            {{ chatSending ? '发送中…' : '发送' }}
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -814,5 +950,132 @@ function toggleStorySpeech() {
   background: var(--mq-accent-soft);
   color: var(--mq-accent);
   border: 1px solid rgba(201, 162, 39, 0.4);
+}
+
+.chat-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  padding-bottom: max(16px, var(--mq-safe-bottom));
+}
+
+.chat-panel {
+  width: 100%;
+  max-width: 520px;
+  height: min(78vh, 560px);
+  border-radius: 18px 18px 14px 14px;
+  background: var(--mq-bg-elevated);
+  border: 1px solid var(--mq-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--mq-border);
+}
+
+.chat-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.chat-sub {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--mq-text-muted);
+}
+
+.chat-close {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: var(--mq-surface-soft);
+  color: var(--mq-text);
+  font-weight: 600;
+}
+
+.chat-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid var(--mq-border);
+}
+
+.bubble.ai {
+  align-self: flex-start;
+  background: var(--mq-surface);
+  color: var(--mq-text);
+}
+
+.bubble.me {
+  align-self: flex-end;
+  background: rgba(201, 162, 39, 0.16);
+  color: var(--mq-text);
+  border-color: rgba(201, 162, 39, 0.25);
+}
+
+.chat-error {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #e8a598;
+}
+
+.chat-foot {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--mq-border);
+  background: rgba(15, 23, 20, 0.65);
+  backdrop-filter: blur(10px);
+}
+
+.chat-input {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 0 12px;
+  background: var(--mq-surface);
+  border: 1px solid var(--mq-border);
+  color: var(--mq-text);
+}
+
+.chat-send {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: var(--mq-accent-soft);
+  color: var(--mq-accent);
+  font-weight: 800;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+}
+
+.chat-send:disabled {
+  opacity: 0.55;
 }
 </style>
