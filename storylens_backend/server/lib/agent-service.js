@@ -9,22 +9,22 @@ function safeText(value) {
 function buildSystemPrompt(artifact) {
   const name = safeText(artifact?.name)
   return [
-    '你是一名博物馆讲解员 AI。',
-    '你只能围绕“当前文物”回答用户问题，不要混入其他文物的信息。',
-    '如果用户问题超出当前文物或资料不足，请明确说明“不确定/需要更多馆方资料”，并引导用户提更具体的问题。',
-    '请使用中文回答，优先给出清晰、适合大众理解的讲解。',
-    name ? `当前文物名称：${name}` : '当前文物名称：未知',
+    'You are a museum guide AI.',
+    'Answer only about the current artifact and do not mix in information from other artifacts.',
+    'If the question goes beyond the current artifact or the provided material is insufficient, clearly say that you are unsure or that more official museum information is needed, then guide the user toward a more specific question.',
+    'Respond in English and prioritize clear explanations that general visitors can easily understand.',
+    name ? `Current artifact name: ${name}` : 'Current artifact name: unknown',
   ].join('\n')
 }
 
 function buildArtifactContext(artifact) {
   const lines = []
-  if (!artifact || typeof artifact !== 'object') return '（未提供文物资料）'
+  if (!artifact || typeof artifact !== 'object') return '(No artifact data provided)'
   if (artifact.id) lines.push(`id: ${safeText(artifact.id)}`)
   if (artifact.name) lines.push(`name: ${safeText(artifact.name)}`)
   if (artifact.hallName) lines.push(`hallName: ${safeText(artifact.hallName)}`)
   if (artifact.story) lines.push(`story: ${safeText(artifact.story)}`)
-  return lines.length ? lines.join('\n') : '（未提供文物资料）'
+  return lines.length ? lines.join('\n') : '(No artifact data provided)'
 }
 
 function newSessionId() {
@@ -64,7 +64,7 @@ function buildMessages(payload) {
     ...history.slice(-8),
     {
       role: 'user',
-      content: `当前文物资料：\n${buildArtifactContext(artifact)}\n\n用户问题：\n${question}`,
+      content: `Current artifact data:\n${buildArtifactContext(artifact)}\n\nUser question:\n${question}`,
     },
   ]
 
@@ -99,7 +99,9 @@ export async function generateArtifactAnswer(body) {
     max_tokens: 500,
   })
 
-  const answer = safeText(response.choices?.[0]?.message?.content).trim() || '（未生成回答）'
+  const answer =
+    safeText(response.choices?.[0]?.message?.content).trim() ||
+    '(No answer generated)'
   persistSession(sessionId, history, question, answer)
 
   return {
@@ -146,7 +148,7 @@ export async function streamArtifactAnswer(body, onChunk, onDone, onError) {
         }
       }
 
-      const answer = safeText(collected).trim() || '（未生成回答）'
+      const answer = safeText(collected).trim() || '(No answer generated)'
       persistSession(sessionId, history, question, answer)
 
       onDone?.({

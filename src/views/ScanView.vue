@@ -55,36 +55,36 @@ function stopCamera() {
 }
 
 function cameraErrorMessage(err) {
-  if (!err) return "无法打开摄像头";
+  if (!err) return "Unable to open the camera.";
   const name = err.name || "";
   if (name === "NotAllowedError" || name === "PermissionDeniedError") {
-    return "已拒绝摄像头权限，请在浏览器设置中允许访问";
+    return "Camera access was denied. Please allow it in your browser settings.";
   }
   if (name === "NotFoundError" || name === "DevicesNotFoundError") {
-    return "未检测到摄像头设备";
+    return "No camera device was detected.";
   }
   if (name === "NotReadableError" || name === "TrackStartError") {
-    return "摄像头被占用或不可用，请关闭其他应用后重试";
+    return "The camera is busy or unavailable. Close other apps and try again.";
   }
   if (name === "OverconstrainedError") {
-    return "当前设备不满足拍摄要求，将尝试默认摄像头";
+    return "This device does not meet the requested camera settings. Trying the default camera instead.";
   }
   if (name === "SecurityError") {
-    return "需要 HTTPS 或 localhost 才能使用摄像头";
+    return "Camera access requires HTTPS or localhost.";
   }
-  return err.message || "无法打开摄像头";
+  return err.message || "Unable to open the camera.";
 }
 
 async function startCamera() {
   if (!navigator.mediaDevices?.getUserMedia) {
     cameraError.value =
-      "当前浏览器不支持摄像头（需较新 Chrome / Safari / 微信内置浏览器等）";
+      "This browser does not support camera access. Try a recent version of Chrome or Safari.";
     return;
   }
 
   if (!window.isSecureContext) {
     cameraError.value =
-      "当前页面不是安全上下文，摄像头只能在 HTTPS 或 localhost 下使用";
+      "This page is not running in a secure context. Camera access only works on HTTPS or localhost.";
     return;
   }
 
@@ -217,45 +217,40 @@ function loadStoryVoices() {
   const vs = window.speechSynthesis.getVoices() || [];
   storyVoices.value = vs;
   if (!selectedVoiceURI.value && vs.length) {
-    const best = pickDefaultChineseVoice(vs);
+    const best = pickDefaultEnglishVoice(vs);
     if (best?.voiceURI) selectedVoiceURI.value = best.voiceURI;
   }
 }
 
-function pickDefaultChineseVoice(vs) {
-  const preferGoogleMandarinCN = (v) => {
+function pickDefaultEnglishVoice(vs) {
+  const preferNaturalEnglish = (v) => {
     const name = (v.name || "").toLowerCase();
     const lang = (v.lang || "").toLowerCase();
-    const isGoogle = name.includes("google");
-    const isMandarin =
-      /普通话|中國大陸|中国大陆|mandarin/i.test(v.name || "") ||
-      name.includes("putonghua");
-    return isGoogle && isMandarin && lang.startsWith("zh-cn");
+    return (
+      (lang.startsWith("en-us") || lang.startsWith("en-gb")) &&
+      /natural|microsoft|google|samantha|daniel|ava|serena/i.test(name)
+    );
   };
 
-  const exact = vs.find(preferGoogleMandarinCN);
+  const exact = vs.find(preferNaturalEnglish);
   if (exact) return exact;
 
-  const isZh = (v) =>
-    (v.lang || "").toLowerCase().startsWith("zh") ||
-    /zh|中文|普通话|國語|国语|mandarin/i.test(v.name || "");
+  const isEn = (v) => (v.lang || "").toLowerCase().startsWith("en");
 
-  const zhs = vs.filter(isZh);
-  const pool = zhs.length ? zhs : vs;
+  const ens = vs.filter(isEn);
+  const pool = ens.length ? ens : vs;
 
   const score = (v) => {
     const name = (v.name || "").toLowerCase();
     const lang = (v.lang || "").toLowerCase();
     let s = 0;
-    if (lang.startsWith("zh-cn")) s += 40;
-    if (lang.startsWith("zh")) s += 10;
-    if (
-      /xiaoxiao|yunxi|yunyang|xiaoyi|xiaohan|xiaomo|xiaorui|xiaoqiu/.test(name)
-    )
-      s += 60;
+    if (lang.startsWith("en-us")) s += 45;
+    if (lang.startsWith("en-gb")) s += 35;
+    if (lang.startsWith("en")) s += 15;
+    if (/natural/.test(name)) s += 40;
     if (/microsoft|edge|natural/.test(name)) s += 30;
     if (/google/.test(name)) s += 20;
-    if (/siri|ting-ting|meijia|li-mu/.test(name)) s += 10;
+    if (/siri|samantha|daniel|ava|serena|alex/.test(name)) s += 10;
     return s;
   };
 
@@ -292,7 +287,7 @@ function onModelLoaded() {
 function onModelError() {
   modelViewerLoading.value = false;
   modelViewerError.value =
-    "3D 模型加载失败。若已部署线上，请确认已上传 public/models 下对应 .glb，并重新构建/发布。";
+    "Failed to load the 3D model. If this is deployed online, make sure the matching .glb file exists in public/models and rebuild the app.";
 }
 
 async function runScan() {
@@ -318,7 +313,7 @@ function openChat() {
     chatMessages.value = [
       {
         role: "assistant",
-        content: `你可以问我关于「${currentArt().name}」的用途、历史背景、工艺特点、文化意义等。`,
+        content: `You can ask me about ${currentArt().name}'s function, history, craftsmanship, or cultural meaning.`,
       },
     ];
   }
@@ -372,8 +367,9 @@ async function sendChat() {
       },
     );
   } catch (e) {
-    chatError.value = e?.message || "发送失败";
-    aiMsg.content += "\n\n（错误）" + (e?.message || "发送失败");
+    chatError.value = e?.message || "Failed to send the message.";
+    aiMsg.content +=
+      "\n\n(Error) " + (e?.message || "Failed to send the message.");
     scheduleChatScrollToBottom();
   } finally {
     aiMsg.streaming = false;
@@ -417,13 +413,13 @@ function toggleStorySpeech() {
     !window.speechSynthesis ||
     !window.SpeechSynthesisUtterance
   ) {
-    storySpeechError.value = "当前浏览器不支持语音播放";
+    storySpeechError.value = "This browser does not support speech playback.";
     return;
   }
 
   stopStorySpeech();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = "zh-CN";
+  u.lang = "en-US";
   const v = storyVoices.value.find(
     (x) => x.voiceURI === selectedVoiceURI.value,
   );
@@ -438,7 +434,8 @@ function toggleStorySpeech() {
   u.onerror = () => {
     storySpeaking.value = false;
     storyUtter = null;
-    storySpeechError.value = "语音播放失败（可能被系统/浏览器限制）";
+    storySpeechError.value =
+      "Speech playback failed. It may be blocked by the system or browser.";
   };
   storyUtter = u;
   storySpeaking.value = true;
@@ -447,18 +444,19 @@ function toggleStorySpeech() {
   } catch {
     storySpeaking.value = false;
     storyUtter = null;
-    storySpeechError.value = "语音播放失败";
+    storySpeechError.value = "Speech playback failed.";
   }
 }
 </script>
 
 <template>
   <div class="page">
-    <div class="camera" aria-label="相机预览">
+    <div class="camera" aria-label="Camera preview">
       <video
         ref="videoRef"
         class="video"
         :class="{ mirror: mirrorVideo }"
+        autoplay
         muted
         playsinline
         webkit-playsinline
@@ -474,16 +472,16 @@ function toggleStorySpeech() {
       </div>
 
       <div v-if="cameraStarting && !stream" class="camera-status">
-        正在开启摄像头…
+        Starting camera...
       </div>
       <div v-else-if="cameraError" class="camera-status error">
         <p>{{ cameraError }}</p>
         <button type="button" class="retry-btn" @click="retryCamera">
-          重试
+          Retry
         </button>
       </div>
       <p v-else class="camera-hint">
-        将二维码或展品置于框内 · 点「扫描」完成识别
+        Place the QR code or artifact inside the frame and tap Scan.
       </p>
     </div>
 
@@ -514,7 +512,7 @@ function toggleStorySpeech() {
           <h2 id="scan-title" class="sheet-title">{{ currentArt().name }}</h2>
           <div class="head-tools">
             <label class="voice">
-              <span class="sr-only">朗读声音</span>
+              <span class="sr-only">Narration voice</span>
               <select
                 v-model="selectedVoiceURI"
                 class="voice-select"
@@ -524,14 +522,14 @@ function toggleStorySpeech() {
                 @touchstart.passive="loadStoryVoices"
               >
                 <option value="" disabled>
-                  {{ storyVoices.length ? "选择声音" : "无可用语音" }}
+                  {{ storyVoices.length ? "Choose voice" : "No voices available" }}
                 </option>
                 <option
                   v-for="v in storyVoices"
                   :key="v.voiceURI"
                   :value="v.voiceURI"
                 >
-                  {{ v.name }}（{{ v.lang }}）
+                  {{ v.name }} ({{ v.lang }})
                 </option>
               </select>
             </label>
@@ -543,24 +541,24 @@ function toggleStorySpeech() {
               :aria-pressed="storySpeaking ? 'true' : 'false'"
               @click="toggleStorySpeech"
             >
-              {{ storySpeaking ? "停止" : "播放故事" }}
+              {{ storySpeaking ? "Stop" : "Play Story" }}
             </button>
           </div>
         </div>
         <p class="sheet-sub">
-          {{ currentArt().hallName }} · +{{ currentArt().points }} 积分（首次）
+          {{ currentArt().hallName }} · +{{ currentArt().points }} pts on first scan
         </p>
 
         <div v-if="currentArt().modelGlb" class="model-block">
           <p class="model-hint">
-            单指拖动旋转视角 · 双指捏合缩放 · 可转到顶部、底部观察
+            Drag with one finger to rotate. Pinch with two fingers to zoom. Explore from the top and bottom.
           </p>
           <div class="model-viewer-wrap">
             <div
               v-if="modelViewerLoading && !modelViewerError"
               class="model-loading"
             >
-              模型加载中…
+              Loading model...
             </div>
             <p v-if="modelViewerError" class="model-error">
               {{ modelViewerError }}
@@ -619,7 +617,7 @@ function toggleStorySpeech() {
           </button>
         </div>
 
-        <div ref="chatBodyRef" class="chat-body" aria-label="对话内容">
+        <div ref="chatBodyRef" class="chat-body" aria-label="Conversation">
           <div
             v-for="(m, idx) in chatMessages"
             :key="idx"
@@ -636,7 +634,7 @@ function toggleStorySpeech() {
             v-model="chatInput"
             class="chat-input"
             type="text"
-            placeholder="问点什么，比如：它有什么用途？"
+            placeholder="Ask something, for example: What was it used for?"
             :disabled="chatSending"
           />
           <button
@@ -661,12 +659,16 @@ function toggleStorySpeech() {
   height: 100%;
   min-height: 0;
   padding-bottom: 0;
+  box-sizing: border-box;
 }
 
 .camera {
   position: relative;
-  height: 100%;
-  min-height: 0;
+  flex: 0 0 min(33vh, 360px);
+  width: calc(100% - 44px);
+  max-width: 420px;
+  min-height: 260px;
+  margin: 42px auto 0;
   border-radius: var(--mq-radius);
   background: #faf3e9;
   border: 1px solid var(--mq-border);
@@ -792,13 +794,13 @@ function toggleStorySpeech() {
 
 .scan-controls {
   position: fixed;
-  width: min(62%, 360px);
+  width: min(68%, 360px);
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(var(--mq-nav-h) + var(--mq-safe-bottom) + 12px);
+  bottom: calc(var(--mq-nav-h) + var(--mq-safe-bottom) + 46px);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   z-index: 52;
 }
 

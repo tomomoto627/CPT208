@@ -1,296 +1,142 @@
 <script setup>
-import { ref, inject, onActivated, onDeactivated, nextTick } from 'vue'
-import { loadAmap, getAmapKey } from '@/utils/amap'
-import '@/assets/amap-user-marker.css'
+import { computed, inject, ref } from "vue";
+import floorPlanImage from "@/assets/museum-floor-plan.png";
 
-const { state } = inject('museum')
+const { state } = inject("museum");
 
-const mapContainerRef = ref(null)
+const zoneMeta = {
+  h1: {
+    roomLabel: "West Hall",
+    roomRect: { left: 2, top: 13, width: 31, height: 73 },
+    hotspot: { left: 18, top: 55 },
+  },
+  h2: {
+    roomLabel: "North Route",
+    roomRect: { left: 34, top: 13, width: 64, height: 34 },
+    hotspot: { left: 66, top: 35 },
+  },
+  h3: {
+    roomLabel: "South Route",
+    roomRect: { left: 34, top: 58, width: 64, height: 32 },
+    hotspot: { left: 69, top: 77 },
+  },
+};
 
-const mapError = ref('')
-const mapLoading = ref(false)
-const followUser = ref(true)
-const orientationEnabled = ref(false)
-const orientationHint = ref('')
+const exhibitionZones = computed(() =>
+  (state.zones || []).map((zone, index) => {
+    const meta = zoneMeta[zone.id] || {};
+    return {
+      ...zone,
+      ...meta,
+      shortName: zone.name,
+      exhibitCount: zone.exhibits?.length || 0,
+      previewExhibits: (zone.exhibits || []).slice(0, 3),
+      accentIndex: index + 1,
+    };
+  }),
+);
 
-let epoch = 0
-let map = null
-let AMapRef = null
-let userMarker = null
-let beamEl = null
-let hallMarkers = []
-let watchId = null
-let lastUserPos = null
+const activeZoneId = ref(exhibitionZones.value[0]?.id || "h1");
 
-function defaultCenter() {
-  const zs = state.zones
-  if (!zs.length) return [120.739, 31.273]
-  const lng = zs.reduce((s, z) => s + z.lng, 0) / zs.length
-  const lat = zs.reduce((s, z) => s + z.lat, 0) / zs.length
-  return [lng, lat]
+const activeZone = computed(
+  () =>
+    exhibitionZones.value.find((zone) => zone.id === activeZoneId.value) ||
+    exhibitionZones.value[0],
+);
+
+function selectZone(zoneId) {
+  activeZoneId.value = zoneId;
 }
-
-function createUserMarkerContent() {
-  const root = document.createElement('div')
-  root.className = 'mq-amap-user-root'
-  /* 避免 content 宽高为 0 时 anchor:center 偏移异常 */
-  root.style.cssText = 'width:2px;height:2px;position:relative;'
-  const beam = document.createElement('div')
-  beam.className = 'mq-amap-beam'
-  const dot = document.createElement('div')
-  dot.className = 'mq-amap-dot'
-  root.appendChild(beam)
-  root.appendChild(dot)
-  return { root, beam }
-}
-
-function createHallMarkerContent(title) {
-  const wrap = document.createElement('div')
-  wrap.style.cssText =
-    'display:flex;flex-direction:column;align-items:center;transform:translateY(-4px);'
-  const dot = document.createElement('div')
-  dot.style.cssText =
-    'width:11px;height:11px;border-radius:50%;background:#c9a227;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);'
-  const label = document.createElement('div')
-  label.textContent = title
-  label.style.cssText =
-    'margin-top:4px;padding:2px 6px;border-radius:6px;font-size:11px;color:#333;background:rgba(255,255,255,.92);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;'
-  wrap.appendChild(dot)
-  wrap.appendChild(label)
-  return wrap
-}
-
-function setBeamHeading(deg) {
-  if (!beamEl || deg == null || Number.isNaN(deg)) return
-  beamEl.style.transform = `rotate(${deg}deg)`
-}
-
-function onDeviceOrientation(e) {
-  let h = null
-  if (typeof e.webkitCompassHeading === 'number' && !Number.isNaN(e.webkitCompassHeading)) {
-    h = e.webkitCompassHeading
-  } else if (typeof e.alpha === 'number' && !Number.isNaN(e.alpha)) {
-    h = 360 - e.alpha
-  }
-  if (h == null) return
-  h = ((h % 360) + 360) % 360
-  setBeamHeading(h)
-}
-
-function detachOrientation() {
-  window.removeEventListener('deviceorientationabsolute', onDeviceOrientation, true)
-  window.removeEventListener('deviceorientation', onDeviceOrientation, true)
-  orientationEnabled.value = false
-}
-
-async function enableOrientation() {
-  orientationHint.value = ''
-  try {
-    if (
-      typeof DeviceOrientationEvent !== 'undefined' &&
-      typeof DeviceOrientationEvent.requestPermission === 'function'
-    ) {
-      const perm = await DeviceOrientationEvent.requestPermission()
-      if (perm !== 'granted') {
-        orientationHint.value = '未授权朝向传感器'
-        return
-      }
-    }
-    detachOrientation()
-    if (typeof window.DeviceOrientationEvent !== 'undefined') {
-      window.addEventListener('deviceorientationabsolute', onDeviceOrientation, true)
-      window.addEventListener('deviceorientation', onDeviceOrientation, true)
-    }
-    orientationEnabled.value = true
-    orientationHint.value = '已开启（需 HTTPS；部分安卓需校准指南针）'
-  } catch {
-    orientationHint.value = '无法开启朝向'
-  }
-}
-
-function clearWatch() {
-  if (watchId != null && navigator.geolocation) {
-    navigator.geolocation.clearWatch(watchId)
-    watchId = null
-  }
-}
-
-function destroyMap() {
-  detachOrientation()
-  clearWatch()
-  hallMarkers.forEach((m) => {
-    try {
-      m.setMap(null)
-    } catch {
-      /* ignore */
-    }
-  })
-  hallMarkers = []
-  userMarker = null
-  beamEl = null
-  if (map) {
-    try {
-      map.destroy()
-    } catch {
-      /* ignore */
-    }
-  }
-  map = null
-  AMapRef = null
-}
-
-function flyToZone(z) {
-  if (!map || !AMapRef) return
-  followUser.value = false
-  map.setZoomAndCenter(17, [z.lng, z.lat], true, 450)
-}
-
-function recenterOnUser() {
-  if (!map || !lastUserPos) return
-  followUser.value = true
-  map.setZoomAndCenter(17, lastUserPos, true, 450)
-}
-
-async function initMap() {
-  const my = ++epoch
-  mapError.value = ''
-
-  if (!getAmapKey()) {
-    mapError.value =
-      '未配置高德 Key：在项目根目录复制 .env.example 为 .env，填写 VITE_AMAP_KEY 后重启 dev 服务。'
-    return
-  }
-
-  mapLoading.value = true
-  try {
-    const AMap = await loadAmap()
-    if (my !== epoch) return
-    AMapRef = AMap
-
-    await nextTick()
-    if (my !== epoch || !mapContainerRef.value) return
-
-    const center = defaultCenter()
-    map = new AMap.Map(mapContainerRef.value, {
-      viewMode: '2D',
-      zoom: 16,
-      center,
-      mapStyle: 'amap://styles/normal',
-    })
-
-    map.on('dragstart', () => {
-      followUser.value = false
-    })
-
-    const { root, beam } = createUserMarkerContent()
-    beamEl = beam
-    userMarker = new AMap.Marker({
-      position: center,
-      content: root,
-      anchor: 'center',
-      zIndex: 120,
-    })
-    userMarker.setMap(map)
-
-    state.zones.forEach((z) => {
-      const content = createHallMarkerContent(z.name)
-      const m = new AMap.Marker({
-        position: [z.lng, z.lat],
-        content,
-        anchor: 'bottom-center',
-        zIndex: 80,
-      })
-      m.setMap(map)
-      hallMarkers.push(m)
-    })
-
-    if (navigator.geolocation) {
-      watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          if (my !== epoch || !map || !userMarker) return
-          const lng = pos.coords.longitude
-          const lat = pos.coords.latitude
-          lastUserPos = [lng, lat]
-          userMarker.setPosition(lastUserPos)
-          if (followUser.value) {
-            map.setCenter(lastUserPos)
-          }
-        },
-        () => {
-          /* 静默失败，不在地图上显示提示条 */
-        },
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 },
-      )
-    }
-
-    await nextTick()
-    map.resize()
-  } catch (e) {
-    if (my !== epoch) return
-    mapError.value = e?.message || '地图初始化失败'
-  } finally {
-    if (my === epoch) mapLoading.value = false
-  }
-}
-
-onActivated(() => {
-  initMap().then(() => {
-    nextTick(() => map?.resize())
-  })
-})
-
-onDeactivated(() => {
-  epoch++
-  destroyMap()
-})
 </script>
 
 <template>
   <div class="page">
     <p class="lead">
-      接入高德地图与浏览器定位；蓝点与浅蓝扇区为实时位置与朝向（朝向需 HTTPS，iOS
-      需点「开启朝向」授权）。
+      Tap a hotspot or a gallery card to focus the matching room on the floor
+      plan.
     </p>
 
-    <section class="map-shell" aria-label="地图">
-      <div ref="mapContainerRef" class="amap-host" />
+    <section class="plan-shell" aria-label="Museum floor plan">
+      <div class="plan-board">
+        <img
+          :src="floorPlanImage"
+          alt="Museum exhibition floor plan"
+          class="floor-plan"
+        />
 
-      <div v-if="mapLoading" class="map-overlay muted">地图加载中…</div>
-      <div v-else-if="mapError" class="map-overlay error">
-        {{ mapError }}
-      </div>
-
-      <div class="float-tools">
-        <button type="button" class="tool-btn" title="回到我的位置" @click="recenterOnUser">
-          <span class="tool-icon" aria-hidden="true">⌖</span>
-        </button>
         <button
+          v-for="zone in exhibitionZones"
+          :key="`${zone.id}-hotspot`"
           type="button"
-          class="tool-btn"
-          :class="{ on: orientationEnabled }"
-          title="指南针扇形（需授权）"
-          @click="enableOrientation"
+          class="hotspot"
+          :class="{ active: activeZoneId === zone.id }"
+          :style="{ left: `${zone.hotspot.left}%`, top: `${zone.hotspot.top}%` }"
+          :aria-label="`Focus ${zone.shortName}`"
+          @click="selectZone(zone.id)"
         >
-          <span class="tool-icon" aria-hidden="true">▲</span>
+          <span class="hotspot-pulse" />
+          <span class="hotspot-dot" />
+          <span class="hotspot-tag">{{ zone.id.toUpperCase() }}</span>
         </button>
+
+        <div
+          v-if="activeZone"
+          class="room-highlight"
+          :style="{
+            left: `${activeZone.roomRect.left}%`,
+            top: `${activeZone.roomRect.top}%`,
+            width: `${activeZone.roomRect.width}%`,
+            height: `${activeZone.roomRect.height}%`,
+          }"
+        />
       </div>
 
-      <p v-if="orientationHint" class="map-subhint">{{ orientationHint }}</p>
+      <div class="plan-caption">
+        <span class="caption-kicker">Now Viewing</span>
+        <strong>{{ activeZone?.shortName }}</strong>
+        <span>
+          {{ activeZone?.roomLabel }} · {{ activeZone?.exhibitCount }} featured
+          exhibits
+        </span>
+      </div>
     </section>
 
     <ul class="zone-list">
-      <li v-for="z in state.zones" :key="z.id" class="zone-item">
-        <div class="zone-main">
-          <span class="zone-name">{{ z.name }}</span>
-          <span class="zone-hint">{{ z.hint }}</span>
-        </div>
-        <button type="button" class="go-btn" @click="flyToZone(z)">去这里</button>
+      <li
+        v-for="zone in exhibitionZones"
+        :key="zone.id"
+        class="zone-item"
+        :class="{ active: activeZoneId === zone.id }"
+      >
+        <button
+          type="button"
+          class="zone-card"
+          @click="selectZone(zone.id)"
+        >
+          <div class="zone-top">
+            <div class="zone-main">
+              <span class="zone-name">{{ zone.shortName }}</span>
+              <span class="zone-hint">{{ zone.roomLabel }}</span>
+            </div>
+            <span class="zone-code">{{ zone.id.toUpperCase() }}</span>
+          </div>
+
+          <p class="zone-summary">{{ zone.hint }}</p>
+
+          <div class="zone-footer">
+            <span class="zone-count">{{ zone.exhibitCount }} exhibits</span>
+            <span class="zone-preview">{{ zone.previewExhibits.join(" · ") }}</span>
+          </div>
+        </button>
       </li>
     </ul>
 
     <section class="card tip">
-      <h2 class="h2">今日推荐</h2>
-      <p>先完成「扫描」页一次模拟识别，可解锁积分与收藏品，再到「商店」试试兑换。</p>
+      <h2 class="h2">Today's Route</h2>
+      <p>
+        Start in {{ exhibitionZones[0]?.shortName }}, move through the upper
+        route, and finish in the lower route for a compact museum walk.
+      </p>
     </section>
   </div>
 </template>
@@ -303,142 +149,217 @@ onDeactivated(() => {
 }
 
 .lead {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--mq-text-muted);
   line-height: 1.55;
 }
 
-.map-shell {
-  position: relative;
-  border-radius: var(--mq-radius);
-  border: 1px solid var(--mq-border);
-  overflow: hidden;
-  background: var(--mq-bg-elevated);
-}
-
-.amap-host {
-  width: 100%;
-  height: min(52vh, 380px);
-  min-height: 260px;
-}
-
-.map-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  text-align: center;
-  font-size: 0.88rem;
-  z-index: 5;
-  pointer-events: none;
-}
-
-.map-overlay.error {
-  background: rgba(250, 243, 233, 0.92);
-  color: var(--mq-text);
-  line-height: 1.5;
-  pointer-events: auto;
-}
-
-.map-overlay.muted {
-  background: rgba(250, 243, 233, 0.72);
-  color: var(--mq-text-muted);
-}
-
-.float-tools {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
+.plan-shell {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--mq-radius);
+  border: 1px solid var(--mq-border);
+  background: linear-gradient(180deg, #fffdf8 0%, #f7f0e4 100%);
+  box-shadow: 0 12px 28px rgba(78, 58, 28, 0.08);
 }
 
-.tool-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.96);
-  color: #333;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.plan-board {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--mq-radius) - 6px);
+  background: #fff;
 }
 
-.tool-btn.on {
-  background: rgba(201, 162, 39, 0.25);
-  color: var(--mq-accent);
-  box-shadow: 0 4px 16px rgba(201, 162, 39, 0.2);
+.floor-plan {
+  width: 100%;
+  display: block;
+  object-fit: contain;
 }
 
-.tool-icon {
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-.map-subhint {
+.room-highlight {
   position: absolute;
-  left: 8px;
-  right: 8px;
-  top: 8px;
-  z-index: 9;
-  padding: 6px 10px;
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.9);
-  text-align: center;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  border: 3px solid rgba(201, 162, 39, 0.95);
+  background: rgba(201, 162, 39, 0.14);
+  box-shadow: 0 0 0 999px rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   pointer-events: none;
+  transition:
+    left 180ms ease,
+    top 180ms ease,
+    width 180ms ease,
+    height 180ms ease;
+}
+
+.hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #3b2d14;
+}
+
+.hotspot-dot,
+.hotspot-pulse {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+}
+
+.hotspot-dot {
+  width: 14px;
+  height: 14px;
+  background: #c9a227;
+  border: 3px solid #fff8eb;
+  box-shadow: 0 6px 14px rgba(112, 82, 16, 0.3);
+}
+
+.hotspot-pulse {
+  width: 28px;
+  height: 28px;
+  background: rgba(201, 162, 39, 0.22);
+}
+
+.hotspot-tag {
+  margin-left: 14px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.95);
+  border: 1px solid rgba(201, 162, 39, 0.32);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hotspot.active .hotspot-dot {
+  background: #8d4d1f;
+}
+
+.hotspot.active .hotspot-tag {
+  background: #c9a227;
+  color: #22180a;
+}
+
+.plan-caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--mq-text-muted);
+  line-height: 1.5;
+}
+
+.caption-kicker {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(201, 162, 39, 0.12);
+  color: var(--mq-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .zone-list {
   list-style: none;
   padding: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
 .zone-item {
+  margin: 0;
+}
+
+.zone-card {
+  width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   padding: 14px 16px;
+  text-align: left;
   background: var(--mq-bg-elevated);
   border-radius: var(--mq-radius);
   border: 1px solid var(--mq-border);
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.zone-item.active .zone-card {
+  border-color: rgba(201, 162, 39, 0.6);
+  background: linear-gradient(180deg, #fffaf0 0%, #f7f0e4 100%);
+  box-shadow: 0 10px 20px rgba(201, 162, 39, 0.12);
+  transform: translateY(-1px);
+}
+
+.zone-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .zone-main {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
 }
 
 .zone-name {
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--mq-text);
 }
 
 .zone-hint {
-  font-size: 0.8rem;
-  color: var(--mq-text-muted);
+  font-size: 0.76rem;
+  color: var(--mq-accent);
 }
 
-.go-btn {
+.zone-code {
   flex-shrink: 0;
-  min-height: var(--mq-tap-min);
-  padding: 0 16px;
-  border-radius: 10px;
-  background: var(--mq-surface-soft);
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(201, 162, 39, 0.12);
   color: var(--mq-accent);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.zone-summary {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--mq-text-muted);
+  line-height: 1.45;
+}
+
+.zone-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.zone-count {
+  color: #5f4a2b;
+  font-weight: 700;
+}
+
+.zone-preview {
+  color: var(--mq-text-muted);
+  line-height: 1.45;
 }
 
 .card {
@@ -455,6 +376,7 @@ onDeactivated(() => {
 }
 
 .tip p {
+  margin: 0;
   font-size: 0.88rem;
   color: var(--mq-text-muted);
   line-height: 1.55;

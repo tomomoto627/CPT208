@@ -1,6 +1,7 @@
 /**
- * 动态加载高德地图 JS API 2.0（Web）
- * 需在控制台申请 Key；若控制台要求「安全密钥」，同时配置 VITE_AMAP_SECURITY_CODE
+ * Dynamically load the AMap JS API 2.0 (Web).
+ * Apply for a key in the AMap console. If a security code is required,
+ * also configure VITE_AMAP_SECURITY_CODE.
  * https://console.amap.com/
  */
 let loadPromise = null
@@ -18,7 +19,7 @@ export function getAmapSecurityCode() {
 export function loadAmap() {
   const key = getAmapKey()
   if (!key) {
-    return Promise.reject(new Error('缺少 VITE_AMAP_KEY'))
+    return Promise.reject(new Error('Missing VITE_AMAP_KEY'))
   }
   if (typeof window !== 'undefined' && window.AMap) {
     return Promise.resolve(window.AMap)
@@ -37,9 +38,9 @@ export function loadAmap() {
     script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}`
     script.onload = () => {
       if (window.AMap) resolve(window.AMap)
-      else reject(new Error('AMap 未挂载'))
+      else reject(new Error('AMap was not attached to window'))
     }
-    script.onerror = () => reject(new Error('高德脚本加载失败'))
+    script.onerror = () => reject(new Error('Failed to load the AMap script'))
     document.head.appendChild(script)
   }).catch((err) => {
     loadPromise = null

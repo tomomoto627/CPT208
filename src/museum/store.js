@@ -1,265 +1,280 @@
-import { reactive, computed } from 'vue'
+import { reactive, computed } from "vue";
 
-/**
- * 同源 GLB（见 public/models/），避免从 GitHub raw 拉取在国内/移动网络被墙或超时导致黑屏。
- * 正式环境可替换为馆方模型，仍建议放在 public 或己方 CDN。
- */
 const initialArtifacts = [
   {
-    id: 'bronze-ding',
-    name: '荷鲁斯护王像（猎隼神）',
-    hallId: 'h1',
-    hallName: '古代雕塑',
+    id: "bronze-ding",
+    name: "Horus Falcon Statue",
+    hallId: "h1",
+    hallName: "Ancient Sculpture",
     story:
-      '古埃及晚期的石雕作品，荷鲁斯以猎隼形象守护法老，象征王权与神祇庇佑。雕像的比例与细部刻画体现了当时对秩序与永恒的追求。',
+      "A stone sculpture from Late Ancient Egypt depicting Horus in falcon form as a guardian of the pharaoh, symbolizing kingship and divine protection. The proportions and detailed carving reflect the era's pursuit of order and eternity.",
     points: 30,
-    modelGlb: '/models/HorusFalcon.glb',
+    modelGlb: "/models/HorusFalcon.glb",
   },
   {
-    id: 'porcelain-vase',
-    name: '龙纹碗',
-    hallId: 'h2',
-    hallName: '瓷韵千年',
+    id: "porcelain-vase",
+    name: "Dragon Motif Bowl",
+    hallId: "h2",
+    hallName: "Millennia of Porcelain",
     story:
-      '高温烧造的釉面器皿，纹饰以龙为主题，寓意守护、权威与吉祥。器形与装饰的结合兼具日用与礼仪属性，是工艺、审美与社会观念的缩影。',
+      "A high-fired glazed vessel decorated with dragon motifs, symbolizing protection, authority, and auspiciousness. The integration of form and ornament reflects both utilitarian and ceremonial functions, embodying craftsmanship, aesthetics, and social values.",
     points: 25,
-    modelGlb: '/models/BowlWithDragons.glb',
+    modelGlb: "/models/BowlWithDragons.glb",
   },
   {
-    id: 'jade-bi',
-    name: '阿芙罗狄忒与厄洛斯像',
-    hallId: 'h1',
-    hallName: '古代雕塑',
+    id: "jade-bi",
+    name: "Aphrodite and Eros Sculpture",
+    hallId: "h1",
+    hallName: "Ancient Sculpture",
     story:
-      '古典时期的石雕传统延续至希腊化/罗马世界，常以神话母题呈现爱与美的理想形象。人物姿态与衣褶处理强调体量与光影，体现古代艺术对人体比例的研究。',
+      "A sculptural tradition from the Classical period extending into the Hellenistic and Roman worlds, often portraying mythological themes of love and beauty. The treatment of posture and drapery emphasizes volume and light, reflecting ancient studies of human proportions.",
     points: 20,
-    modelGlb: '/models/AphroditeEros.glb',
+    modelGlb: "/models/AphroditeEros.glb",
   },
   {
-    id: 'urn-ingirsu',
-    name: '乌尔-宁吉尔苏像（苏美尔）',
-    hallId: 'h3',
-    hallName: '两河文明',
+    id: "urn-ingirsu",
+    name: "Statue of Ur-Ningirsu (Sumerian)",
+    hallId: "h3",
+    hallName: "Mesopotamian Civilization",
     story:
-      '约公元前 2080 年的两河流域雕像，人物双手合拢呈祈祷姿，常见于神庙奉献物。简洁有力的体块与刻写信息，记录了权力、信仰与城市国家的秩序。',
+      "A sculpture from around 2080 BCE in Mesopotamia, depicting a figure with clasped hands in a gesture of prayer, commonly used as a temple offering. Its simplified yet powerful form, along with inscriptions, documents authority, belief, and the order of city-states.",
     points: 28,
-    modelGlb: '/models/UrNingirsuStatue.glb',
+    modelGlb: "/models/UrNingirsuStatue.glb",
   },
   {
-    id: 'bronze-bull-head',
-    name: '青铜牛首饰件',
-    hallId: 'h1',
-    hallName: '青铜时代',
+    id: "bronze-bull-head",
+    name: "Bronze Bull Head Ornament",
+    hallId: "h3",
+    hallName: "Bronze Age",
     story:
-      '早期金属器上常见动物形象装饰，牛首象征力量与守护，也可能用于器物把手、挂饰或礼仪构件。铸造与打磨痕迹能直观呈现古代冶金与造型能力。',
+      "Animal motifs frequently appear in early metalwork, with the bull symbolizing strength and protection. Such ornaments may have served as handles, pendants, or ritual components, showcasing ancient metallurgical and artistic capabilities.",
     points: 18,
-    modelGlb: '/models/BronzeBullHead.glb',
+    modelGlb: "/models/BronzeBullHead.glb",
   },
   {
-    id: 'silver-gilt-bowl',
-    name: '鎏金银碗',
-    hallId: 'h2',
-    hallName: '金银工艺',
+    id: "silver-gilt-bowl",
+    name: "Gilt Silver Bowl",
+    hallId: "h2",
+    hallName: "Gold and Silver Craftsmanship",
     story:
-      '以银为胎、表面鎏金的器皿，兼具贵金属光泽与耐久性，常与宴飨、祭献或身份象征相关。金银器的锤揲与鎏金工艺体现了高超的金工技术与跨文化交流。',
+      "A vessel made of silver with a gilded surface, combining the luster of precious metals with durability. Often associated with banquets, rituals, or status display, it reflects advanced metalworking techniques and cross-cultural exchanges.",
     points: 22,
-    modelGlb: '/models/SilverGiltBowl.glb',
+    modelGlb: "/models/SilverGiltBowl.glb",
   },
   {
-    id: 'gelede-helmet-mask',
-    name: '格莱德（Gẹ̀lẹ̀dẹ́）头盔面具',
-    hallId: 'h3',
-    hallName: '仪式与面具',
+    id: "gelede-helmet-mask",
+    name: "Gelede Helmet Mask",
+    hallId: "h3",
+    hallName: "Rituals and Masks",
     story:
-      '西非约鲁巴文化的仪式面具，多用于节庆表演与社区仪式，强调对女性力量与社会和谐的敬意。木雕与彩绘将人物与象征元素组合，呈现故事性与公共审美。',
+      "A ceremonial mask from the Yoruba culture of West Africa, used in festivals and community rituals to honor female power and social harmony. Carved wood and painted elements combine human and symbolic features, presenting narrative and communal aesthetics.",
     points: 24,
-    modelGlb: '/models/GeledeHelmetMask.glb',
+    modelGlb: "/models/GeledeHelmetMask.glb",
   },
   {
-    id: 'buddha-preaching',
-    name: '说法佛像',
-    hallId: 'h1',
-    hallName: '古代雕塑',
+    id: "buddha-preaching",
+    name: "Preaching Buddha Statue",
+    hallId: "h1",
+    hallName: "Ancient Sculpture",
     story:
-      '佛陀作说法印的形象常用于表现讲经弘法的庄严时刻，衣纹处理、手势组合与面部神情共同传达宁静与教化意味。此类造像也反映出不同地区佛教艺术在材质、比例与风格上的融合演变。',
+      "Depicting the Buddha in the gesture of teaching (Dharmachakra Mudra), this form represents moments of sermon and enlightenment. The treatment of drapery, hand gestures, and facial expression conveys serenity and spiritual instruction, while reflecting regional stylistic variations in Buddhist art.",
     points: 26,
-    modelGlb: '/models/buddha_preaching.glb',
+    modelGlb: "/models/buddha_preaching.glb",
   },
   {
-    id: 'crying-cow-sculpture',
-    name: '哭泣母牛雕塑',
-    hallId: 'h1',
-    hallName: '古代雕塑',
+    id: "crying-cow-sculpture",
+    name: "Weeping Cow Sculpture",
+    hallId: "h1",
+    hallName: "Ancient Sculpture",
     story:
-      '动物雕塑常被赋予情绪化表达，用夸张的眼部、头部姿态与身体体量强化观看者的共情体验。这件作品以母牛形象传递哀悼、守护或献祭相关的文化意涵，也展现了雕塑对生命张力的捕捉。',
+      "Animal sculptures are often imbued with emotional expression. This work uses exaggerated eyes, head posture, and body mass to evoke empathy, portraying themes of mourning, protection, or sacrifice, while demonstrating the sculptural capture of vitality.",
     points: 19,
-    modelGlb: '/models/crying_cow_sculpture.glb',
+    modelGlb: "/models/crying_cow_sculpture.glb",
   },
   {
-    id: 'fish-pond',
-    name: '鱼池模型',
-    hallId: 'h2',
-    hallName: '园景与器物',
+    id: "fish-pond",
+    name: "Fish Pond Model",
+    hallId: "h2",
+    hallName: "Gardens and Artifacts",
     story:
-      '鱼池题材常见于园林、器物装饰与生活场景再现之中，既体现古人对自然生境的观察，也寄托了富足、生机与水域秩序的想象。池体结构与鱼群布局能帮助我们理解古代空间营造与审美趣味。',
+      "Fish pond motifs appear in gardens, decorative objects, and representations of daily life, reflecting observations of natural habitats and aspirations for abundance and vitality. The structure and arrangement of fish provide insights into spatial design and aesthetic preferences.",
     points: 17,
-    modelGlb: '/models/fish-pond.glb',
+    modelGlb: "/models/fish-pond.glb",
   },
   {
-    id: 'isis-serqet-figure',
-    name: '伊西斯-塞尔凯特女神残像',
-    hallId: 'h1',
-    hallName: '古代雕塑',
+    id: "isis-serqet-figure",
+    name: "Fragmentary Figure of Isis-Serqet",
+    hallId: "h1",
+    hallName: "Ancient Sculpture",
     story:
-      '这类残损的女神雕像虽不完整，却依然保留了古埃及宗教图像的重要线索。姿态、冠饰与残存轮廓可帮助研究者辨识神格与功能，也让观众看到文物在漫长时间中经历的断裂、流转与再发现。',
+      "Although incomplete, this fragmentary goddess figure preserves key elements of ancient Egyptian religious imagery. Posture, headdress, and surviving contours aid in identifying divine attributes, while also illustrating the processes of damage, circulation, and rediscovery over time.",
     points: 23,
-    modelGlb: '/models/fragmentary_figure_of_the_goddess_isis-serqet.glb',
+    modelGlb: "/models/fragmentary_figure_of_the_goddess_isis-serqet.glb",
   },
   {
-    id: 'inscribed-tablet',
-    name: '铭文泥板',
-    hallId: 'h3',
-    hallName: '两河文明',
+    id: "inscribed-tablet",
+    name: "Inscribed Clay Tablet",
+    hallId: "h3",
+    hallName: "Mesopotamian Civilization",
     story:
-      '泥板文书是两河流域最重要的文字载体之一，常用于记录贸易、祭祀、行政与法律事务。表面的楔形文字压痕不仅保存了信息本身，也呈现出古代书写工具、记账制度与城市治理方式。',
+      "Clay tablets were a primary writing medium in Mesopotamia, used to record trade, rituals, administration, and legal matters. The cuneiform impressions preserve not only information but also evidence of writing tools, accounting systems, and urban governance.",
     points: 21,
-    modelGlb: '/models/tablet.glb',
+    modelGlb: "/models/tablet.glb",
   },
-]
+];
 
-/** 示例坐标：苏州工业园区独墅湖一带（可改为真实馆址） */
 const initialZones = [
   {
-    id: 'h1',
-    name: '青铜时代',
-    hint: '推荐路线起点',
+    id: "h1",
+    name: "Ancient Sculpture",
+    hint: "Largest hall on the west side of the floor plan",
+    summary:
+      "This gallery gathers major figurative and animal sculptures from several ancient traditions and serves as the anchor room of the exhibition.",
+    exhibits: [
+      "Horus Falcon Statue",
+      "Aphrodite and Eros Sculpture",
+      "Preaching Buddha Statue",
+      "Weeping Cow Sculpture",
+      "Fragmentary Figure of Isis-Serqet",
+    ],
     lng: 120.7388,
     lat: 31.272,
   },
   {
-    id: 'h2',
-    name: '瓷韵与金银工艺',
-    hint: '器物细节丰富',
+    id: "h2",
+    name: "Upper Route Galleries",
+    hint: "Porcelain, metalwork, and garden displays",
+    summary:
+      "The upper route combines Millennia of Porcelain, Gold and Silver Craftsmanship, and Gardens and Artifacts into a sequence of decorative arts rooms.",
+    exhibits: ["Dragon Motif Bowl", "Gilt Silver Bowl", "Fish Pond Model"],
     lng: 120.7414,
     lat: 31.2736,
   },
   {
-    id: 'h3',
-    name: '雕塑与仪式',
-    hint: '请留意材质纹理与刻痕',
+    id: "h3",
+    name: "Lower Route Galleries",
+    hint: "Mesopotamia, ritual culture, and Bronze Age works",
+    summary:
+      "The lower route links writing, ritual, and early metallurgy through Mesopotamian Civilization, Rituals and Masks, and Bronze Age.",
+    exhibits: [
+      "Statue of Ur-Ningirsu (Sumerian)",
+      "Inscribed Clay Tablet",
+      "Gelede Helmet Mask",
+      "Bronze Bull Head Ornament",
+    ],
     lng: 120.7374,
     lat: 31.2742,
   },
-]
+];
 
 const initialShop = [
-  { id: 's1', name: '馆徽金属书签', cost: 80, stock: 99 },
-  { id: 's2', name: '文物明信片套装', cost: 50, stock: 200 },
-  { id: 's3', name: '限定帆布袋', cost: 120, stock: 30 },
-]
+  { id: "s1", name: "Museum Crest Bookmark", cost: 80, stock: 99 },
+  { id: "s2", name: "Postcard Set", cost: 50, stock: 200 },
+  { id: "s3", name: "Limited Canvas Tote", cost: 120, stock: 30 },
+];
 
 const initialPosts = [
   {
-    id: 'p1',
-    author: '探馆小能手',
-    text: '二展厅转角有个隐藏扫码点，扫完送了一张「夜场券」收藏品！',
+    id: "p1",
+    author: "Gallery Explorer",
+    text:
+      "The Ancient Sculpture hall is the best place to start if you want the quickest overview of the whole exhibition.",
     likes: 42,
     liked: false,
   },
   {
-    id: 'p2',
-    author: '周末遛娃',
-    text: '孩子最喜欢扫描后的故事朗读，希望能出英文版～',
+    id: "p2",
+    author: "Weekend Visitor",
+    text:
+      "The floor plan makes it much easier to connect the bowl, mask, and bronze pieces across different halls.",
     likes: 18,
     liked: false,
   },
-]
+];
 
 export function createMuseumStore() {
   const state = reactive({
     points: 100,
-    unlockedArtifactIds: ['bronze-ding'],
+    unlockedArtifactIds: ["bronze-ding"],
     redeemedShopIds: [],
     artifacts: [...initialArtifacts],
     zones: [...initialZones],
     shopItems: [...initialShop],
     posts: initialPosts.map((p) => ({ ...p })),
     lastScan: null,
-    toast: '',
-  })
+    toast: "",
+  });
 
   const collectibles = computed(() =>
     state.artifacts.map((a) => ({
       ...a,
       unlocked: state.unlockedArtifactIds.includes(a.id),
     })),
-  )
+  );
 
-  const unlockedCount = computed(
-    () => state.unlockedArtifactIds.length,
-  )
+  const unlockedCount = computed(() => state.unlockedArtifactIds.length);
 
-  let toastTimer
+  let toastTimer;
   function showToast(msg) {
-    state.toast = msg
-    clearTimeout(toastTimer)
+    state.toast = msg;
+    clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
-      state.toast = ''
-    }, 2200)
+      state.toast = "";
+    }, 2200);
   }
 
   function scanArtifact(artifactId) {
-    const art = state.artifacts.find((a) => a.id === artifactId)
-    if (!art) return
-    const already = state.unlockedArtifactIds.includes(artifactId)
+    const art = state.artifacts.find((a) => a.id === artifactId);
+    if (!art) return;
+    const already = state.unlockedArtifactIds.includes(artifactId);
     if (!already) {
-      state.unlockedArtifactIds.push(artifactId)
-      state.points += art.points
-      showToast(`获得收藏品「${art.name}」+${art.points} 积分`)
+      state.unlockedArtifactIds.push(artifactId);
+      state.points += art.points;
+      showToast(`Unlocked ${art.name} +${art.points} pts`);
     } else {
-      state.points += 5
-      showToast(`重温「${art.name}」+5 积分`)
+      state.points += 5;
+      showToast(`Revisited ${art.name} +5 pts`);
     }
-    state.lastScan = { ...art, already }
+    state.lastScan = { ...art, already };
   }
 
   function redeem(itemId) {
-    const item = state.shopItems.find((i) => i.id === itemId)
-    if (!item || state.redeemedShopIds.includes(itemId)) return false
+    const item = state.shopItems.find((i) => i.id === itemId);
+    if (!item || state.redeemedShopIds.includes(itemId)) return false;
     if (state.points < item.cost) {
-      showToast('积分不足')
-      return false
+      showToast("Not enough points");
+      return false;
     }
-    state.points -= item.cost
-    state.redeemedShopIds.push(itemId)
-    showToast(`已兑换「${item.name}」`)
-    return true
+    state.points -= item.cost;
+    state.redeemedShopIds.push(itemId);
+    showToast(`Redeemed ${item.name}`);
+    return true;
   }
 
   function toggleLike(postId) {
-    const p = state.posts.find((x) => x.id === postId)
-    if (!p) return
+    const p = state.posts.find((x) => x.id === postId);
+    if (!p) return;
     if (p.liked) {
-      p.liked = false
-      p.likes = Math.max(0, p.likes - 1)
+      p.liked = false;
+      p.likes = Math.max(0, p.likes - 1);
     } else {
-      p.liked = true
-      p.likes += 1
+      p.liked = true;
+      p.likes += 1;
     }
   }
 
   function addPost(text) {
-    const t = text.trim()
-    if (!t) return
+    const t = text.trim();
+    if (!t) return;
     state.posts.unshift({
-      id: 'p' + Date.now(),
-      author: '我',
+      id: "p" + Date.now(),
+      author: "You",
       text: t,
       likes: 0,
       liked: false,
-    })
-    state.points += 5
-    showToast('发布成功 +5 积分')
+    });
+    state.points += 5;
+    showToast("Post published +5 pts");
   }
 
   return {
@@ -270,5 +285,5 @@ export function createMuseumStore() {
     redeem,
     toggleLike,
     addPost,
-  }
+  };
 }

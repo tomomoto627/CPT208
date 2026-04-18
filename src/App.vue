@@ -236,7 +236,7 @@ function confirmStoreSearch() {
         </KeepAlive>
       </main>
 
-      <nav class="tab-bar" aria-label="主导航">
+      <nav class="tab-bar" aria-label="Primary navigation">
         <button
           v-for="t in tabs"
           :key="t.key"
