@@ -1,7 +1,6 @@
 ﻿<script setup>
 import { computed, provide, ref } from "vue";
 import avatarImg from "@/assets/avatar1.png";
-import { storeProducts } from "@/data/storeProducts";
 import { createMuseumStore } from "./museum/store";
 import { createSocialStore } from "./museum/socialStore";
 import CommunityView from "./views/CommunityView.vue";
@@ -40,39 +39,6 @@ const views = {
 };
 
 const ActiveView = computed(() => views[current.value] || HomeView);
-const topTitle = computed(() =>
-  current.value === "community" ? "Community Feed" : "Museum Quest",
-);
-
-const storeSearch = ref("");
-const storeSearchFocused = ref(false);
-
-const matchedProducts = computed(() => {
-  const keyword = storeSearch.value.trim().toLowerCase();
-  if (!keyword) return [];
-
-  return storeProducts
-    .map((item) => {
-      const n = item.name.toLowerCase();
-      const s = item.source.toLowerCase();
-      const score =
-        (n.startsWith(keyword) ? 2 : 0) +
-        (n.includes(keyword) ? 1 : 0) +
-        (s.includes(keyword) ? 1 : 0);
-      return { item, score };
-    })
-    .filter((entry) => entry.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4)
-    .map((entry) => entry.item);
-});
-
-const showStoreMatches = computed(
-  () =>
-    current.value === "store" &&
-    storeSearchFocused.value &&
-    matchedProducts.value.length > 0,
-);
 
 function onLoginSuccess(payload) {
   stage.value = "app";
@@ -113,30 +79,6 @@ function switchTab(key) {
 function leaveProfile() {
   current.value = previousTab.value || "home";
 }
-
-function onStoreSearchBlur() {
-  window.setTimeout(() => {
-    storeSearchFocused.value = false;
-  }, 120);
-}
-
-function pickStoreProduct(name) {
-  const picked = storeProducts.find((item) => item.name === name);
-  storeSearch.value = name;
-  storeSearchFocused.value = false;
-  if (!picked) return;
-
-  current.value = "store";
-  window.dispatchEvent(
-    new CustomEvent("mq-open-store-product", {
-      detail: { productId: picked.id },
-    }),
-  );
-}
-
-function confirmStoreSearch() {
-  storeSearchFocused.value = true;
-}
 </script>
 
 <template>
@@ -159,76 +101,13 @@ function confirmStoreSearch() {
     />
 
     <div v-else class="shell">
-      <header
-        v-if="current !== 'profile' && current !== 'community' && current !== 'scan'"
-        class="top-bar"
-      >
-        <div v-if="current === 'store'" class="store-search-wrap">
-          <div class="store-search-top">
-            <div class="store-search">
-              <svg
-                class="search-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle cx="11" cy="11" r="6.5" />
-                <path d="m16 16 4 4" />
-              </svg>
-              <input
-                v-model="storeSearch"
-                type="search"
-                class="search-input"
-                placeholder="Search museum gifts and stories"
-                @focus="storeSearchFocused = true"
-                @blur="onStoreSearchBlur"
-                @keydown.enter.prevent="confirmStoreSearch"
-              />
-            </div>
-            <button
-              type="button"
-              class="search-confirm-btn"
-              @click="confirmStoreSearch"
-            >
-              Go
-            </button>
-            <div class="store-points-chip" aria-label="Current points">
-              <span class="store-points-num">{{ museum.state.points }}</span>
-              <span class="store-points-unit">pts</span>
-            </div>
-          </div>
-
-          <ul v-if="showStoreMatches" class="search-match-list">
-            <li v-for="item in matchedProducts" :key="item.id">
-              <button
-                type="button"
-                class="search-match-item"
-                @mousedown.prevent="pickStoreProduct(item.name)"
-              >
-                <img
-                  :src="item.image"
-                  :alt="item.name"
-                  class="search-match-thumb"
-                />
-                <span class="search-match-copy">
-                  <span class="search-match-name">{{ item.name }}</span>
-                  <span class="search-match-meta"
-                    >{{ item.price }} / {{ item.redeemPoints }} pts</span
-                  >
-                </span>
-              </button>
-            </li>
-          </ul>
-        </div>
-        <h1 v-else class="title">{{ topTitle }}</h1>
-      </header>
-
       <main
         class="main"
         :class="{
           'main-profile': current === 'profile',
           'main-community': current === 'community',
           'main-scan': current === 'scan',
+          'main-store': current === 'store',
         }"
       >
         <KeepAlive>
@@ -316,8 +195,8 @@ function confirmStoreSearch() {
 <style scoped>
 .app-screen {
   min-height: 100dvh;
-  background: #faf3e9;
-  --mq-bg: #faf3e9;
+  background: #ffffff;
+  --mq-bg: #ffffff;
 }
 
 .shell {
@@ -325,163 +204,7 @@ function confirmStoreSearch() {
   flex-direction: column;
   min-height: 100dvh;
   padding-top: var(--mq-safe-top);
-  background: #faf3e9;
-}
-
-.top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px 10px;
-  border-bottom: 1px solid var(--mq-border);
-  flex-shrink: 0;
-}
-
-.title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--mq-text);
-}
-
-.store-search-wrap {
-  width: 100%;
-  position: relative;
-}
-
-.store-search-top {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 56px 72px;
-  gap: 8px;
-  align-items: center;
-}
-
-.store-search {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(130, 112, 88, 0.24);
-  background: #fbf6ee;
-}
-
-.search-confirm-btn {
-  min-height: 40px;
-  border-radius: 12px;
-  border: 1px solid rgba(130, 112, 88, 0.24);
-}
-
-.store-points-chip {
-  min-height: 40px;
-}
-
-.search-confirm-btn {
-  font-size: 0.86rem;
-  font-weight: 650;
-  color: #fffdf8;
-  border-color: #a17434;
-  background: #a17434;
-}
-
-.store-points-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  color: #6b4a1e;
-  border: 0;
-  background: transparent;
-  min-height: 40px;
-}
-
-.store-points-num {
-  font-size: 1.32rem;
-  line-height: 1;
-  font-weight: 900;
-}
-
-.store-points-unit {
-  font-size: 0.62rem;
-  line-height: 1;
-  font-weight: 680;
-  opacity: 0.9;
-}
-
-.search-icon {
-  width: 16px;
-  height: 16px;
-  color: #8a7350;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  flex-shrink: 0;
-}
-
-.search-input {
-  width: 100%;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: #463d34;
-  font-size: 0.92rem;
-}
-
-.search-input::placeholder {
-  color: #8f8374;
-}
-
-.search-match-list {
-  list-style: none;
-  margin: 6px 80px 0 0;
-  padding: 6px;
-  border-radius: 12px;
-  border: 1px solid rgba(130, 112, 88, 0.2);
-  background: #fffdf8;
-  box-shadow: 0 6px 18px rgba(78, 58, 27, 0.12);
-}
-
-.search-match-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px;
-  border-radius: 10px;
-  text-align: left;
-}
-
-.search-match-item:hover {
-  background: rgba(180, 138, 78, 0.09);
-}
-
-.search-match-thumb {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  object-fit: cover;
-  border: 1px solid rgba(130, 112, 88, 0.18);
-}
-
-.search-match-copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.search-match-name {
-  font-size: 0.86rem;
-  font-weight: 620;
-  color: #40382f;
-}
-
-.search-match-meta {
-  font-size: 0.74rem;
-  color: #907550;
+  background: #ffffff;
 }
 
 .main {
@@ -506,6 +229,10 @@ function confirmStoreSearch() {
   padding: 0;
 }
 
+.main.main-store {
+  padding-top: 8px;
+}
+
 .tab-bar {
   position: fixed;
   left: 50%;
@@ -521,9 +248,10 @@ function confirmStoreSearch() {
   padding-left: 12px;
   padding-right: 12px;
   padding-bottom: var(--mq-safe-bottom);
-  background: #faf3e9;
+  background: linear-gradient(180deg, #dbc39e 0%, #caaa79 100%);
   backdrop-filter: blur(12px);
-  border-top: 1px solid var(--mq-border);
+  border-top: 1px solid rgba(120, 89, 47, 0.24);
+  box-shadow: 0 -8px 18px rgba(86, 61, 30, 0.14);
   z-index: 50;
 }
 
@@ -536,11 +264,11 @@ function confirmStoreSearch() {
   gap: 2px;
   min-height: var(--mq-tap-min);
   padding: 3px 0 2px;
-  color: var(--mq-text-muted);
+  color: #6f5638;
 }
 
 .tab.active {
-  color: var(--mq-accent);
+  color: #8a6227;
 }
 
 .tab-icon {
@@ -564,8 +292,8 @@ function confirmStoreSearch() {
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(130, 112, 88, 0.34);
-  background: #f3e5cf;
+  border: 1px solid rgba(120, 89, 47, 0.3);
+  background: #f6ead8;
 }
 
 .tab-profile {

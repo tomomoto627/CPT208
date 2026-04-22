@@ -2,7 +2,7 @@ import { reactive, computed } from "vue";
 
 const initialArtifacts = [
   {
-    id: "bronze-ding",
+    id: "horus-falcon-statue",
     name: "Horus Falcon Statue",
     hallId: "h1",
     hallName: "Ancient Sculpture",
@@ -12,7 +12,7 @@ const initialArtifacts = [
     modelGlb: "/models/HorusFalcon.glb",
   },
   {
-    id: "porcelain-vase",
+    id: "dragon-motif-bowl",
     name: "Dragon Motif Bowl",
     hallId: "h2",
     hallName: "Millennia of Porcelain",
@@ -22,7 +22,7 @@ const initialArtifacts = [
     modelGlb: "/models/BowlWithDragons.glb",
   },
   {
-    id: "jade-bi",
+    id: "aphrodite-eros-sculpture",
     name: "Aphrodite and Eros Sculpture",
     hallId: "h1",
     hallName: "Ancient Sculpture",
@@ -32,7 +32,7 @@ const initialArtifacts = [
     modelGlb: "/models/AphroditeEros.glb",
   },
   {
-    id: "urn-ingirsu",
+    id: "statue-of-ur-ningirsu",
     name: "Statue of Ur-Ningirsu (Sumerian)",
     hallId: "h3",
     hallName: "Mesopotamian Civilization",
@@ -42,7 +42,7 @@ const initialArtifacts = [
     modelGlb: "/models/UrNingirsuStatue.glb",
   },
   {
-    id: "bronze-bull-head",
+    id: "bronze-bull-head-ornament",
     name: "Bronze Bull Head Ornament",
     hallId: "h3",
     hallName: "Bronze Age",
@@ -72,7 +72,7 @@ const initialArtifacts = [
     modelGlb: "/models/GeledeHelmetMask.glb",
   },
   {
-    id: "buddha-preaching",
+    id: "preaching-buddha-statue",
     name: "Preaching Buddha Statue",
     hallId: "h1",
     hallName: "Ancient Sculpture",
@@ -82,7 +82,7 @@ const initialArtifacts = [
     modelGlb: "/models/buddha_preaching.glb",
   },
   {
-    id: "crying-cow-sculpture",
+    id: "weeping-cow-sculpture",
     name: "Weeping Cow Sculpture",
     hallId: "h1",
     hallName: "Ancient Sculpture",
@@ -92,7 +92,7 @@ const initialArtifacts = [
     modelGlb: "/models/crying_cow_sculpture.glb",
   },
   {
-    id: "fish-pond",
+    id: "fish-pond-model",
     name: "Fish Pond Model",
     hallId: "h2",
     hallName: "Gardens and Artifacts",
@@ -102,7 +102,7 @@ const initialArtifacts = [
     modelGlb: "/models/fish-pond.glb",
   },
   {
-    id: "isis-serqet-figure",
+    id: "fragmentary-isis-serqet-figure",
     name: "Fragmentary Figure of Isis-Serqet",
     hallId: "h1",
     hallName: "Ancient Sculpture",
@@ -112,7 +112,7 @@ const initialArtifacts = [
     modelGlb: "/models/fragmentary_figure_of_the_goddess_isis-serqet.glb",
   },
   {
-    id: "inscribed-tablet",
+    id: "inscribed-clay-tablet",
     name: "Inscribed Clay Tablet",
     hallId: "h3",
     hallName: "Mesopotamian Civilization",
@@ -195,7 +195,7 @@ const initialPosts = [
 export function createMuseumStore() {
   const state = reactive({
     points: 100,
-    unlockedArtifactIds: ["bronze-ding"],
+    unlockedArtifactIds: ["horus-falcon-statue"],
     redeemedShopIds: [],
     artifacts: [...initialArtifacts],
     zones: [...initialZones],

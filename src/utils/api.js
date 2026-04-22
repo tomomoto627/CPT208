@@ -10,7 +10,12 @@ export function buildApiUrl(path) {
   return `${base}${p}`
 }
 
-export async function streamFetch(path, opts = {}, onChunk = () => {}) {
+export async function streamFetch(
+  path,
+  opts = {},
+  onChunk = () => {},
+  onEvent = () => {},
+) {
   const { method = 'POST', body, headers = {}, mode = 'sse' } = opts
   const url = buildApiUrl(path)
   const res = await fetch(url, {
@@ -54,6 +59,7 @@ export async function streamFetch(path, opts = {}, onChunk = () => {}) {
 
         let payload = rawData
         try { payload = JSON.parse(rawData) } catch {}
+        onEvent(eventName, payload)
 
         if (eventName === 'delta') {
           const text = typeof payload === 'string' ? payload : payload?.delta || ''

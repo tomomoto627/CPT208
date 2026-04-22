@@ -516,8 +516,8 @@ function removePost(postId) {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #f6efe4;
-  color: #2f2a24;
+  background: #f7f3ec;
+  color: #2f241c;
   position: relative;
   overflow: hidden;
 }
@@ -526,7 +526,7 @@ function removePost(postId) {
   position: relative;
   flex: 0 0 39%;
   min-height: 220px;
-  padding: 16px 16px 18px;
+  padding: 16px 16px 20px;
   overflow: hidden;
   isolation: isolate;
 }
@@ -555,11 +555,12 @@ function removePost(postId) {
 
 .edit-btn {
   min-height: 30px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #9b753f;
-  font-size: 0.9rem;
+  padding: 0 10px;
+  border: 1px solid #e6dccb;
+  border-radius: 999px;
+  background: rgba(255, 253, 249, 0.8);
+  color: #7b6a58;
+  font-size: 0.82rem;
   font-weight: 650;
 }
 
@@ -599,13 +600,15 @@ function removePost(postId) {
   display: block;
   object-fit: cover;
   background: #f3e5cf;
-  border: 1px solid rgba(176, 143, 86, 0.38);
+  border: 1px solid #e6dccb;
+  box-shadow: 0 4px 12px rgba(80, 60, 30, 0.08);
 }
 
 .name {
   margin: 10px 0 0;
-  font-size: 1.02rem;
-  font-weight: 650;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #2f241c;
 }
 
 .bio {
@@ -613,7 +616,7 @@ function removePost(postId) {
   max-width: 290px;
   font-size: 0.84rem;
   line-height: 1.45;
-  color: #6f655a;
+  color: #8b8b8b;
 }
 
 .profile-input {
@@ -645,36 +648,51 @@ function removePost(postId) {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  background: #faf5ec;
+  background: #f7f3ec;
   border-top-left-radius: 22px;
   border-top-right-radius: 22px;
-  border-top: 1px solid rgba(130, 112, 88, 0.14);
+  border-top: 1px solid #e6dccb;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(123, 106, 88, 0.32) transparent;
+}
+
+.profile-sheet::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-sheet::-webkit-scrollbar-thumb {
+  background: rgba(123, 106, 88, 0.28);
+  border-radius: 999px;
 }
 
 .tab-header {
   position: sticky;
   top: 0;
   z-index: 5;
-  background: #f9f3e9;
-  border-bottom: 1px solid rgba(130, 112, 88, 0.14);
+  background: #f7f3ec;
+  border-bottom: 1px solid #e6dccb;
+  padding: 8px 12px 6px;
 }
 
 .tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: stretch;
-  padding: 0 6px;
-  background: rgba(249, 243, 233, 0.97);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #e6dccb;
+  border-radius: 12px;
+  background: #fffdf9;
 }
 
 .tab-btn {
-  min-height: 46px;
+  min-height: 42px;
   border: 0;
-  border-radius: 0;
+  border-radius: 9px;
   background: transparent;
-  color: #857766;
+  color: #7b6a58;
   font-size: 0.9rem;
-  font-weight: 560;
+  font-weight: 580;
   position: relative;
   display: flex;
   align-items: center;
@@ -682,25 +700,27 @@ function removePost(postId) {
 }
 
 .tab-btn.active {
-  color: #3f372f;
+  color: #2f241c;
+  font-weight: 700;
+  background: #f3e6c7;
 }
 
 .tab-btn.active::after {
   content: '';
   position: absolute;
-  left: 18%;
-  right: 18%;
-  bottom: 0;
-  height: 2px;
+  left: 28%;
+  right: 28%;
+  bottom: 4px;
+  height: 2.5px;
   border-radius: 999px;
-  background: #b48a4e;
+  background: #c89b3c;
 }
 
 .feed {
-  padding: 12px 14px calc(18px + var(--mq-safe-bottom));
+  padding: 12px 16px calc(18px + var(--mq-safe-bottom));
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .embedded-collection {
@@ -708,10 +728,11 @@ function removePost(postId) {
 }
 
 .card {
-  border-radius: 14px;
-  border: 1px solid rgba(130, 112, 88, 0.17);
-  background: #fffdf8;
+  border-radius: 12px;
+  border: 1px solid #e6dccb;
+  background: #f9f7f1;
   padding: 12px;
+  box-shadow: 0 6px 18px rgba(80, 60, 30, 0.06);
   cursor: pointer;
 }
 
@@ -719,7 +740,7 @@ function removePost(postId) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 9px;
 }
 
 .post-author {
@@ -740,51 +761,55 @@ function removePost(postId) {
 
 .author-name {
   font-size: 0.9rem;
-  font-weight: 650;
-  color: #3a332b;
+  font-weight: 700;
+  color: #2f241c;
 }
 
 .post-time {
   font-size: 0.75rem;
-  color: #8f8374;
+  color: #8b8b8b;
   flex-shrink: 0;
 }
 
 .thumb-wrap {
   margin-bottom: 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   background: #f2e7d5;
-  border: 1px solid rgba(130, 112, 88, 0.14);
+  border: 1px solid #e6dccb;
 }
 
 .thumb {
   width: 100%;
-  height: 132px;
+  height: 138px;
   object-fit: cover;
   display: block;
 }
 
 .card-title {
-  font-size: 1.12rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #3a332b;
+  color: #2f241c;
   line-height: 1.25;
 }
 
 .card-text {
   margin-top: 6px;
   font-size: 0.84rem;
-  line-height: 1.46;
-  color: #5f564b;
+  line-height: 1.5;
+  color: #8b8b8b;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .meta {
   margin-top: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #8e7a59;
+  gap: 10px;
+  color: #6e6255;
 }
 
 .meta-btn {
@@ -793,15 +818,18 @@ function removePost(postId) {
   border-radius: 0;
   border: 0;
   background: transparent;
-  color: #8e7a59;
+  color: #6e6255;
   font-size: 0.8rem;
-  font-weight: 550;
+  font-weight: 600;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   transition: transform 0.16s ease, color 0.16s ease;
 }
 
 .meta-btn.on {
-  color: #b1843d;
+  color: #b99953;
   transform: translateY(-1px);
   animation: meta-pop 0.2s ease;
 }
@@ -809,7 +837,7 @@ function removePost(postId) {
 .social-proof {
   margin-top: 8px;
   font-size: 0.74rem;
-  color: #8e7a59;
+  color: #8b8b8b;
   line-height: 1.35;
 }
 

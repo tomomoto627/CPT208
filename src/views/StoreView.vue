@@ -1,5 +1,5 @@
 ﻿<script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref } from 'vue'
 import shop1 from '@/assets/shop-1.png'
 import shop2 from '@/assets/shop-2.png'
 import shop3 from '@/assets/shop-3.png'
@@ -11,6 +11,8 @@ const activeSlide = ref(0)
 const activeCategory = ref('Featured')
 const selectedProduct = ref(null)
 const activeActionTab = ref('cart')
+const searchQuery = ref('')
+const museum = inject('museum', null)
 const cartOpen = ref(false)
 const cartItems = ref([])
 const dragState = {
@@ -43,9 +45,19 @@ const banners = [
 
 const categories = ['Featured', 'New Arrivals', 'Stationery', 'Wearables', 'Home Objects']
 const products = storeProducts
-const filteredProducts = computed(() =>
-  products.filter((item) => item.tags?.includes(activeCategory.value)),
-)
+const filteredProducts = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  return products.filter((item) => {
+    const inCategory = item.tags?.includes(activeCategory.value)
+    if (!inCategory) return false
+    if (!q) return true
+    return (
+      String(item.name || '').toLowerCase().includes(q) ||
+      String(item.source || '').toLowerCase().includes(q) ||
+      (item.tags || []).join(' ').toLowerCase().includes(q)
+    )
+  })
+})
 const actionTabs = [
   { key: 'cart', label: 'Add to Cart' },
   { key: 'buy', label: 'Buy Now' },
@@ -99,6 +111,18 @@ function onBannerScroll() {
 
 function selectCategory(category) {
   activeCategory.value = category
+}
+
+function categoryIcon(category) {
+  if (category === 'Featured') return '★'
+  if (category === 'New Arrivals') return '✶'
+  if (category === 'Stationery') return '✎'
+  if (category === 'Wearables') return '◍'
+  return '⌂'
+}
+
+function submitSearch() {
+  // Query filtering is reactive via `filteredProducts`.
 }
 
 function openProductDetail(item) {
@@ -225,6 +249,29 @@ onMounted(() => {
 
 <template>
   <div class="page">
+    <section class="store-topbar" aria-label="Store search and points">
+      <div class="store-search">
+        <span class="store-search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4 4" />
+          </svg>
+        </span>
+        <input
+          v-model="searchQuery"
+          class="store-search-input"
+          type="text"
+          placeholder="Search museum gifts and stories"
+          @keydown.enter.prevent="submitSearch"
+        />
+      </div>
+      <button type="button" class="store-go-btn" @click="submitSearch">Go</button>
+      <div class="store-points">
+        <span class="store-points-icon" aria-hidden="true">☆</span>
+        <span>{{ museum?.state?.points ?? 0 }} pts</span>
+      </div>
+    </section>
+
     <section class="banner-section" aria-label="Shop campaigns">
       <div
         ref="bannerRef"
@@ -260,6 +307,7 @@ onMounted(() => {
         :class="{ active: c === activeCategory }"
         @click="selectCategory(c)"
       >
+        <span class="category-icon" aria-hidden="true">{{ categoryIcon(c) }}</span>
         {{ c }}
       </button>
     </section>
@@ -272,10 +320,22 @@ onMounted(() => {
             <h3 class="goods-name">{{ item.name }}</h3>
             <p class="goods-source">{{ item.source }}</p>
             <div class="goods-price-row">
-              <p class="goods-price">{{ item.price }}</p>
-              <p class="goods-redeem">Redeem: {{ item.redeemPoints }} points</p>
+              <p class="goods-price">
+                <span class="goods-price-icon" aria-hidden="true">◍</span>
+                <span>{{ item.price }}</span>
+              </p>
+              <span class="goods-price-divider" aria-hidden="true" />
+              <p class="goods-redeem">
+                <span class="goods-redeem-icon" aria-hidden="true">◎</span>
+                <span>Redeem: {{ item.redeemPoints }} points</span>
+              </p>
             </div>
           </div>
+          <span class="goods-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="m9 6 6 6-6 6" />
+            </svg>
+          </span>
         </li>
       </ul>
 
@@ -392,6 +452,89 @@ onMounted(() => {
   gap: 14px;
 }
 
+.store-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 10px 0;
+}
+
+.store-search {
+  min-height: 44px;
+  border-radius: 18px;
+  border: 1px solid rgba(205, 180, 138, 0.48);
+  background: #fffdf9;
+  box-shadow: 0 4px 10px rgba(80, 60, 30, 0.08);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.store-search-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #8f795b;
+}
+
+.store-search-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.store-search-input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #4a3c2b;
+  font-size: 0.86rem;
+}
+
+.store-search-input::placeholder {
+  color: #8f7d69;
+}
+
+.store-go-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(198, 145, 57, 0.7);
+  background: linear-gradient(180deg, #c89b3c 0%, #ae7922 100%);
+  color: #fffaf0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(125, 87, 35, 0.2);
+}
+
+.store-points {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(205, 180, 138, 0.52);
+  background: #f7ecd8;
+  color: #493a2a;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.store-points-icon {
+  color: #b5852f;
+}
+
 .banner-section {
   display: flex;
   flex-direction: column;
@@ -422,7 +565,7 @@ onMounted(() => {
   position: relative;
   min-width: 100%;
   aspect-ratio: 587 / 357;
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
   scroll-snap-align: start;
   border: 1px solid rgba(130, 112, 88, 0.2);
@@ -479,14 +622,14 @@ onMounted(() => {
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: rgba(143, 116, 70, 0.35);
 }
 
 .dot.on {
-  width: 16px;
+  width: 22px;
   background: #b48a4e;
 }
 
@@ -512,21 +655,29 @@ onMounted(() => {
 
 .category-pill {
   flex-shrink: 0;
-  min-height: 34px;
+  min-height: 38px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(130, 112, 88, 0.25);
-  background: #f7f0e3;
+  border: 1px solid rgba(190, 164, 124, 0.44);
+  background: #faf5ea;
   color: #7a6b59;
   font-size: 0.8rem;
   font-weight: 600;
   touch-action: pan-x;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .category-pill.active {
-  border-color: #b48a4e;
-  background: #fff3dc;
-  color: #7c5418;
+  border-color: #c89b3c;
+  background: #f5e7c8;
+  color: #7a5421;
+}
+
+.category-icon {
+  font-size: 0.84rem;
+  opacity: 0.86;
 }
 
 .goods-section {
@@ -542,23 +693,25 @@ onMounted(() => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .goods-card {
   display: flex;
   gap: 10px;
-  padding: 10px;
-  border-radius: 14px;
-  background: #fffdf8;
-  border: 1px solid rgba(130, 112, 88, 0.17);
+  padding: 11px;
+  border-radius: 16px;
+  background: #fffdf9;
+  border: 1px solid rgba(195, 172, 135, 0.35);
+  box-shadow: 0 5px 14px rgba(80, 60, 30, 0.06);
   cursor: pointer;
+  align-items: center;
 }
 
 .goods-image {
-  width: 108px;
+  width: 102px;
   aspect-ratio: 587 / 357;
-  border-radius: 10px;
+  border-radius: 11px;
   object-fit: cover;
   flex-shrink: 0;
   border: 1px solid rgba(130, 112, 88, 0.14);
@@ -574,29 +727,32 @@ onMounted(() => {
 
 .goods-name {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.94rem;
   font-weight: 700;
   color: #3f372f;
 }
 
 .goods-source {
   margin: 6px 0 0;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   line-height: 1.35;
   color: #7a6f62;
 }
 
 .goods-price {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: #9b753f;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .goods-price-row {
   margin-top: 8px;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -606,6 +762,40 @@ onMounted(() => {
   font-size: 0.76rem;
   color: #8a6b3a;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.goods-price-divider {
+  width: 1px;
+  height: 15px;
+  background: rgba(168, 140, 97, 0.35);
+}
+
+.goods-arrow {
+  margin-left: auto;
+  width: 20px;
+  height: 20px;
+  color: #8b7555;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.goods-arrow svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.goods-price-icon,
+.goods-redeem-icon {
+  color: #b5852f;
 }
 
 .empty-state {
@@ -980,5 +1170,59 @@ onMounted(() => {
 
 .cart-buy-btn:disabled {
   opacity: 0.5;
+}
+
+@media (max-width: 400px) {
+  .cart-fab {
+    right: 12px;
+    bottom: calc(var(--mq-nav-h) + var(--mq-safe-bottom) + 82px);
+    width: 46px;
+    height: 46px;
+  }
+
+  .cart-panel {
+    right: 10px;
+    width: calc(100vw - 20px);
+    max-height: min(56vh, 360px);
+    bottom: calc(var(--mq-nav-h) + var(--mq-safe-bottom) + 132px);
+    border-radius: 12px;
+  }
+
+  .cart-head {
+    padding: 9px 10px;
+  }
+
+  .cart-list {
+    padding: 7px 8px;
+    gap: 7px;
+  }
+
+  .cart-item {
+    gap: 7px;
+    padding: 6px;
+  }
+
+  .cart-thumb {
+    width: 40px;
+    height: 40px;
+  }
+
+  .cart-name {
+    font-size: 0.74rem;
+  }
+
+  .cart-meta {
+    font-size: 0.66rem;
+  }
+
+  .cart-foot {
+    padding: 8px 10px;
+  }
+
+  .cart-buy-btn {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
 }
 </style>
