@@ -857,7 +857,8 @@ function toggleStorySpeech() {
               {{ storySpeaking ? "Stop" : "Play Story" }}
             </button>
           </div>
-        </div>        <p class="sheet-sub">
+        </div>
+        <p class="sheet-sub">
           <span class="sheet-sub-hall">
             <span class="sheet-sub-hall-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none">
@@ -1890,13 +1891,6 @@ function toggleStorySpeech() {
   padding-bottom: max(16px, var(--mq-safe-bottom));
 }
 
-.chat-sheet.fullscreen {
-  align-items: stretch;
-  justify-content: center;
-  padding: 0;
-  background: #f7f4ed;
-}
-
 .chat-panel {
   width: 100%;
   max-width: 520px;
@@ -1910,14 +1904,6 @@ function toggleStorySpeech() {
   flex-direction: column;
 }
 
-.chat-panel.fullscreen {
-  width: min(100vw, 480px);
-  max-width: 480px;
-  height: calc(var(--mq-vh, 1vh) * 100);
-  border-radius: 0;
-  border: none;
-}
-
 .chat-head {
   display: flex;
   align-items: center;
@@ -1927,10 +1913,6 @@ function toggleStorySpeech() {
   padding: 16px;
   border-bottom: 1px solid rgba(122, 136, 104, 0.44);
   background: #8b9776;
-}
-
-.chat-panel.fullscreen .chat-head {
-  padding-top: max(16px, var(--mq-safe-top));
 }
 
 .chat-title-wrap {
@@ -2008,19 +1990,6 @@ function toggleStorySpeech() {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-}
-
-.chat-expand {
-  min-height: 36px;
-  padding: 0 13px;
-  border-radius: 12px;
-  background: #f7f3ec;
-  color: #2f4a32;
-  border: 1px solid #d7cebb;
-  font-size: 0.78rem;
-  font-weight: 700;
-  white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(40, 52, 35, 0.06);
 }
 
 .chat-body {
@@ -2171,10 +2140,6 @@ function toggleStorySpeech() {
   background: #8b9776;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-}
-
-.chat-panel.fullscreen .chat-foot {
-  padding-bottom: max(12px, var(--mq-safe-bottom));
 }
 
 .chat-input {
@@ -2394,136 +2359,131 @@ function toggleStorySpeech() {
     font-size: 0.92rem;
   }
 
-  .chat-sheet {
+  /* 弹窗遮罩层 */
+.chat-sheet {
     padding: 8px;
     padding-bottom: 0;
     align-items: stretch;
-  }
+}
 
-  .chat-sheet.fullscreen {
-    align-items: stretch;
-    justify-content: flex-start;
-    padding: 0;
-  }
-
-  .chat-panel {
+/* 弹窗主体 panel */
+.chat-panel {
     width: 100%;
     max-width: none;
-    height: calc(var(--mq-vh, 1vh) * 100);
-    max-height: none;
+    height: 100dvh;           /* 修改: 动态视口高度，随键盘变化 */
+    max-height: 100dvh;       /* 修改: 最大高度也限制为动态视口 */
     border-radius: 0;
-  }
+    display: flex;             /* 修改: 弹窗 flex 布局 */
+    flex-direction: column;    /* 修改: 上下排列，消息区滚动，底栏固定 */
+}
 
-  .chat-panel.fullscreen {
-    width: 100%;
-    max-width: none;
-    height: calc(var(--mq-vh, 1vh) * 100);
-    max-height: none;
-    border-radius: 0;
-  }
-
-  .chat-head {
+/* 顶部头部 */
+.chat-head {
     flex-direction: row;
     align-items: center;
     gap: 8px;
     min-height: auto;
     padding: 12px;
-  }
+}
 
-  .chat-title-wrap {
+.chat-title-wrap {
     width: 100%;
     flex: 1 1 auto;
     grid-template-columns: 40px minmax(0, 1fr);
     column-gap: 8px;
     row-gap: 2px;
-  }
+}
 
-  .chat-brand {
+.chat-brand {
     width: 40px;
     height: 40px;
-  }
+}
 
-  .chat-title {
+.chat-title {
     font-size: 0.95rem;
     line-height: 1.15;
-  }
+}
 
-  .chat-sub {
+.chat-sub {
     font-size: 0.66rem;
     line-height: 1.25;
-  }
+}
 
-  .chat-artifact-tag {
+.chat-artifact-tag {
     margin-top: 4px;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 0.66rem;
-  }
+}
 
-  .chat-head-actions {
+.chat-head-actions {
     width: auto;
     justify-content: flex-end;
     gap: 8px;
     flex-wrap: wrap;
-  }
+}
 
-  .chat-close,
-  .chat-expand {
+.chat-close {
     min-height: 32px;
     padding: 0 10px;
     font-size: 0.72rem;
-  }
+}
 
-  .chat-body {
+/* 消息区，可滚动 */
+.chat-body {
     padding: 10px 10px 8px;
     gap: 10px;
     min-height: 0;
-    flex: 1 1 auto;
+    flex: 1 1 auto;           /* 修改: 占据剩余空间 */
+    overflow-y: auto;          /* 修改: 可滚动 */
     max-height: none;
-    overflow: auto;
-  }
+}
 
-  .message-row {
+.message-row {
     gap: 7px;
-  }
+}
 
-  .chat-bubble {
+.chat-bubble {
     max-width: 84%;
     padding: 12px 14px;
     font-size: 0.86rem;
     line-height: 1.55;
-  }
+}
 
-  .chat-suggest-chip {
+.chat-suggest-chip {
     min-height: 34px;
     padding: 0 14px;
     font-size: 0.73rem;
-  }
+}
 
-  .chat-empty-hint {
+.chat-empty-hint {
     font-size: 0.72rem;
-  }
+}
 
-  .chat-foot {
-    padding: 10px 10px max(10px, var(--mq-safe-bottom));
+/* 底部输入栏 */
+.chat-foot {
+    flex-shrink: 0;            /* 修改: 底栏固定不被压缩 */
+    display: flex;              /* 修改: 弹性布局 */
+    padding: 10px 10px max(10px, env(safe-area-inset-bottom)); /* 修改: safe-area 兼容 iPhone notch */
     gap: 8px;
-  }
+}
 
-  .chat-input {
+/* 输入框 */
+.chat-input {
     min-height: 50px;
     border-radius: 25px;
     padding: 0 14px;
     font-size: 0.88rem;
-  }
-
-  .chat-send {
-    width: 50px;
-    min-height: 50px;
-  }
+    flex: 1;                     /* 修改: 自动填充底栏剩余空间 */
 }
 
+/* 发送按钮 */
+.chat-send {
+    width: 50px;
+    min-height: 50px;
+}
 </style>
 
 
