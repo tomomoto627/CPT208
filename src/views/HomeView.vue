@@ -10,8 +10,13 @@ import { streamFetch } from "@/utils/api";
 
 const onRouteInputFocus = () => {
   nextTick(() => {
-    if (routeChatBodyRef.value) {
-      routeChatBodyRef.value.scrollIntoView({ behavior: "smooth", block: "end" });
+    const body = routeChatBodyRef.value;
+    body?.scrollIntoView({ behavior: "smooth", block: "end" });
+
+    const panel = body?.closest(".route-chat-panel");
+    if (panel) {
+      panel.style.paddingBottom = "300px";  // 临时腾出键盘空间
+      setTimeout(() => (panel.style.paddingBottom = ""), 300);
     }
   });
 };
@@ -1343,166 +1348,6 @@ onUnmounted(() => {
   line-height: 1.5;
 }
 
-@media (max-width: 430px) {
-  .selected-route-card {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .selected-route-btn {
-    grid-column: 1 / -1;
-    justify-self: end;
-  }
-
-  .selected-route-card,
-  .route-today-card,
-  .route-ai-cta {
-    min-height: 0;
-  }
-
-  .route-today-card {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .today-arrow {
-    display: none;
-  }
-
-  .route-ai-cta {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .route-ai-btn {
-    grid-column: 1 / -1;
-    width: 100%;
-    justify-self: stretch;
-  }
-
-  .route-detail-sheet {
-    padding: 8px;
-    padding-bottom: max(8px, var(--mq-safe-bottom));
-  }
-
-  .route-detail-panel {
-    max-width: none;
-    max-height: calc(var(--mq-vh, 1vh) * 100 - 16px - var(--mq-safe-bottom));
-    padding: 12px;
-    border-radius: 14px;
-  }
-
-  .route-detail-head h3 {
-    font-size: 0.95rem;
-  }
-
-  .route-detail-meta,
-  .route-detail-hint,
-  .route-detail-list {
-    font-size: 0.8rem;
-  }
-
-  .route-chat-sheet {
-    padding: 8px;
-    padding-bottom: 0;
-    align-items: stretch;
-  }
-
-  .route-chat-panel {
-    max-width: none;
-    width: 100%;
-    height: calc(var(--mq-vh, 1vh) * 100);
-    max-height: none;
-    border-radius: 0;
-  }
-
-  .route-chat-head {
-    min-height: auto;
-    padding: 12px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .route-chat-title-wrap {
-    grid-template-columns: 40px minmax(0, 1fr);
-    column-gap: 8px;
-    row-gap: 2px;
-  }
-
-  .route-chat-brand {
-    width: 40px;
-    height: 40px;
-  }
-
-  .route-chat-title {
-    font-size: 0.96rem;
-    line-height: 1.12;
-  }
-
-  .route-chat-sub {
-    font-size: 0.66rem;
-    line-height: 1.22;
-  }
-
-  .route-chat-head-actions {
-    width: 100%;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-
-  .route-chat-close {
-    min-height: 32px;
-    padding: 0 10px;
-    font-size: 0.72rem;
-  }
-
-  .route-chat-body {
-    padding: 10px 10px 8px;
-    gap: 10px;
-    min-height: 0;
-    flex: 0 1 auto;
-    max-height: min(calc(var(--mq-vh, 1vh) * 40), 300px);
-    overflow: auto;
-  }
-
-  .route-bubble {
-    max-width: 86%;
-    padding: 12px 14px;
-    font-size: 0.86rem;
-    line-height: 1.5;
-  }
-
-  .route-suggest-row {
-    gap: 8px;
-    padding: 0;
-  }
-
-  .route-suggest-chip {
-    min-height: 34px;
-    padding: 0 14px;
-    font-size: 0.74rem;
-  }
-
-  .route-chat-foot {
-    padding: 10px 10px max(10px, var(--mq-safe-bottom));
-    gap: 8px;
-    position: sticky;
-    bottom: 0;
-    z-index: 4;
-  }
-
-  .route-chat-input {
-    min-height: 50px;
-    border-radius: 25px;
-    padding: 0 14px;
-    font-size: 0.88rem;
-  }
-
-  .route-chat-send {
-    width: 50px;
-    min-height: 50px;
-  }
-
-}
-
 .route-chat-sheet {
   position: fixed;
   inset: 0;
@@ -1842,11 +1687,11 @@ onUnmounted(() => {
   .route-chat-panel {
     max-width: none;
     width: 100%;
-    height: 100dvh;           /* 动态视口高度，随键盘变化 */
-    max-height: 100dvh;       /* 最大高度也限制为动态视口 */
+    height: 100dvh;           /* 动态视口高度 */
+    max-height: 100dvh;
     border-radius: 0;
-    display: flex;             /* 弹窗 flex 布局 */
-    flex-direction: column;    /* 上下排列，消息区滚动，底栏固定 */
+    display: flex;
+    flex-direction: column;    /* 上下排列 */
   }
 
   .route-chat-head {
@@ -1894,12 +1739,12 @@ onUnmounted(() => {
     font-size: 0.7rem;
   }
 
-  /* 消息区滚动 */
+  /* 消息区 */
   .route-chat-body {
     flex: 1 1 auto;           /* 占据剩余空间 */
     min-height: 0;
     overflow-y: auto;          /* 可滚动 */
-    padding: 10px 10px 8px;
+    padding: 10px;
     gap: 10px;
   }
 
@@ -1932,9 +1777,9 @@ onUnmounted(() => {
 
   /* 底栏固定 */
   .route-chat-foot {
-    flex-shrink: 0;           /* 底栏固定不被压缩 */
-    display: flex;             /* 弹性布局 */
-    padding: 10px 10px max(10px, env(safe-area-inset-bottom));  /* safe-area 兼容 iPhone notch */
+    flex-shrink: 0;
+    display: flex;
+    padding: 10px 10px max(10px, env(safe-area-inset-bottom));
     gap: 8px;
   }
 
@@ -1943,7 +1788,7 @@ onUnmounted(() => {
     border-radius: 24px;
     padding: 0 14px;
     font-size: 0.87rem;
-    flex: 1;                   /* 占满底栏剩余空间 */
+    flex: 1;                   /* 占满剩余空间 */
   }
 
   .route-chat-send {
