@@ -1,15 +1,21 @@
-import 'dotenv/config'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import dotenv from 'dotenv'
 import express from 'express'
 import {
   generateArtifactAnswer,
   getCorsHeaders,
   streamArtifactAnswer,
 } from './lib/agent-service.js'
+import { classifyArtifactImage } from './lib/vision-service.js'
+
+const serverDir = path.dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: path.resolve(serverDir, '../../.env') })
 
 const PORT = Number.parseInt(process.env.PORT || '8787', 10)
 
 const app = express()
-app.use(express.json({ limit: '1mb' }))
+app.use(express.json({ limit: '8mb' }))
 
 app.use((req, res, next) => {
   const corsHeaders = getCorsHeaders(req.headers.origin)
@@ -107,6 +113,17 @@ app.post('/api/agent/chat', async (req, res) => {
     }
 
     const result = await generateArtifactAnswer(req.body)
+    res.json(result)
+  } catch (error) {
+    res.status(error?.statusCode || 500).json({
+      error: error?.message || 'server error',
+    })
+  }
+})
+
+app.post('/api/agent/classify-image', async (req, res) => {
+  try {
+    const result = await classifyArtifactImage(req.body)
     res.json(result)
   } catch (error) {
     res.status(error?.statusCode || 500).json({

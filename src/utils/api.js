@@ -4,7 +4,11 @@
  * 若 API 在别的端口/域名，在 .env 里设 VITE_API_BASE，例如 http://127.0.0.1:8787
  */
 export function buildApiUrl(path) {
-  const base = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '')
+  const base = (
+    import.meta.env.VITE_API_BASE ||
+    import.meta.env.VITE_API_BASE_URL ||
+    ''
+  ).replace(/\/$/, '')
   const p = path.startsWith('/') ? path : `/${path}`
   if (!base) return p
   return `${base}${p}`
