@@ -99,7 +99,6 @@ const routeChatError = ref("");
 const routeChatMessages = ref([]);
 const routeChatBodyRef = ref(null);
 const activeRouteIntent = ref("");
-const routeChatFullscreen = ref(false);
 const showRouteDetails = ref(false);
 let routeChatScrollRaf = 0;
 
@@ -267,7 +266,6 @@ function formatRouteAssistantMessage(raw) {
 
 function openRouteChat() {
   routeChatError.value = "";
-  routeChatFullscreen.value = false;
   showRouteChat.value = true;
   if (!routeChatMessages.value.length) {
     routeChatMessages.value = [
@@ -283,11 +281,6 @@ function openRouteChat() {
 
 function closeRouteChat() {
   showRouteChat.value = false;
-  routeChatFullscreen.value = false;
-}
-
-function toggleRouteChatFullscreen() {
-  routeChatFullscreen.value = !routeChatFullscreen.value;
 }
 
 async function sendRouteChat(forcedQuestion = "") {
@@ -543,12 +536,10 @@ onUnmounted(() => {
     <div
       v-if="showRouteChat"
       class="route-chat-sheet"
-      :class="{ fullscreen: routeChatFullscreen }"
       @click.self="closeRouteChat"
     >
       <div
         class="route-chat-panel"
-        :class="{ fullscreen: routeChatFullscreen }"
         role="dialog"
         aria-modal="true"
         aria-labelledby="route-chat-title"
@@ -562,13 +553,6 @@ onUnmounted(() => {
             <p class="route-chat-sub">Personalized museum guidance</p>
           </div>
           <div class="route-chat-head-actions">
-            <button
-              type="button"
-              class="route-chat-expand"
-              @click="toggleRouteChatFullscreen"
-            >
-              {{ routeChatFullscreen ? "Compact" : "Full view" }}
-            </button>
             <button type="button" class="route-chat-close" @click="closeRouteChat">
               Close
             </button>

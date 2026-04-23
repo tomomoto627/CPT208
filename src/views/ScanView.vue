@@ -21,7 +21,6 @@ const modelViewerError = ref("");
 const modelViewerLoading = ref(false);
 
 const showChat = ref(false);
-const chatFullscreen = ref(false);
 const chatArtifactId = ref("");
 const chatSessionId = ref("");
 const chatInput = ref("");
@@ -437,7 +436,6 @@ watch(selectedId, (nextId, prevId) => {
   resetChatForArtifact();
   if (showChat.value) {
     showChat.value = false;
-    chatFullscreen.value = false;
   }
 });
 
@@ -501,7 +499,6 @@ function resetChatForArtifact() {
 function openChat() {
   resetChatForArtifact();
   chatError.value = "";
-  chatFullscreen.value = false;
   showChat.value = true;
   if (!chatMessages.value.length && currentArt()) {
     chatMessages.value = [
@@ -516,11 +513,6 @@ function openChat() {
 
 function closeChat() {
   showChat.value = false;
-  chatFullscreen.value = false;
-}
-
-function toggleChatFullscreen() {
-  chatFullscreen.value = !chatFullscreen.value;
 }
 
 async function sendChat(forcedQuestion = "") {
@@ -947,12 +939,10 @@ function toggleStorySpeech() {
     <div
       v-if="showChat"
       class="chat-sheet"
-      :class="{ fullscreen: chatFullscreen }"
       @click.self="closeChat"
     >
       <div
         class="chat-panel"
-        :class="{ fullscreen: chatFullscreen }"
         role="dialog"
         aria-modal="true"
         aria-labelledby="chat-title"
@@ -970,13 +960,6 @@ function toggleStorySpeech() {
             <p class="chat-artifact-tag">Current artifact: {{ currentArt()?.name }}</p>
           </div>
           <div class="chat-head-actions">
-            <button
-              type="button"
-              class="chat-expand"
-              @click="toggleChatFullscreen"
-            >
-              {{ chatFullscreen ? "Compact" : "Full view" }}
-            </button>
             <button type="button" class="chat-close" @click="closeChat">
               Close
             </button>
