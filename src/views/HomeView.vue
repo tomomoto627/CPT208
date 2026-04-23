@@ -1470,6 +1470,9 @@ onUnmounted(() => {
     padding: 10px 10px 8px;
     gap: 10px;
     min-height: 0;
+    flex: 0 1 auto;
+    max-height: min(calc(var(--mq-vh, 1vh) * 40), 300px);
+    overflow: auto;
   }
 
   .route-bubble {
@@ -1871,6 +1874,125 @@ onUnmounted(() => {
 
 .route-chat-send:disabled {
   opacity: 0.55;
+}
+
+@media (max-width: 430px) {
+  .route-chat-sheet {
+    padding: 8px;
+    padding-bottom: max(8px, var(--mq-safe-bottom));
+  }
+
+  .route-chat-panel {
+    max-width: none;
+    height: auto;
+    max-height: calc(var(--mq-vh, 1vh) * 100 - 16px - var(--mq-safe-bottom));
+    border-radius: 16px;
+  }
+
+  .route-chat-panel.fullscreen {
+    width: 100vw;
+    max-width: 100vw;
+    height: calc(var(--mq-vh, 1vh) * 100);
+  }
+
+  .route-chat-head {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .route-chat-title-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 8px;
+    row-gap: 2px;
+  }
+
+  .route-chat-brand {
+    width: 40px;
+    height: 40px;
+  }
+
+  .route-chat-title {
+    font-size: 0.95rem;
+    line-height: 1.1;
+  }
+
+  .route-chat-sub {
+    font-size: 0.64rem;
+    line-height: 1.15;
+  }
+
+  .route-chat-head-actions {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .route-chat-close,
+  .route-chat-expand {
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 0.7rem;
+  }
+
+  .route-chat-body {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: min(calc(var(--mq-vh, 1vh) * 36), 280px);
+    overflow: auto;
+    padding: 10px 10px 8px;
+    gap: 10px;
+  }
+
+  .route-message-row {
+    gap: 6px;
+  }
+
+  .route-bubble {
+    max-width: 84%;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    line-height: 1.48;
+  }
+
+  .route-suggest-row {
+    gap: 8px;
+    padding: 0;
+  }
+
+  .route-suggest-chip {
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 0.73rem;
+  }
+
+  .route-empty-hint {
+    margin-top: 2px;
+    font-size: 0.72rem;
+  }
+
+  .route-chat-foot {
+    padding: 10px 10px max(10px, var(--mq-safe-bottom));
+    gap: 8px;
+  }
+
+  .route-chat-input {
+    min-height: 48px;
+    border-radius: 24px;
+    padding: 0 14px;
+    font-size: 0.87rem;
+  }
+
+  .route-chat-send {
+    width: 48px;
+    min-height: 48px;
+  }
 }
 
 </style>

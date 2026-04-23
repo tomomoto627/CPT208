@@ -2431,8 +2431,8 @@ function toggleStorySpeech() {
   }
 
   .chat-head {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
     gap: 8px;
     min-height: auto;
     padding: 12px;
@@ -2440,6 +2440,7 @@ function toggleStorySpeech() {
 
   .chat-title-wrap {
     width: 100%;
+    flex: 1 1 auto;
     grid-template-columns: 40px minmax(0, 1fr);
     column-gap: 8px;
     row-gap: 2px;
@@ -2470,9 +2471,10 @@ function toggleStorySpeech() {
   }
 
   .chat-head-actions {
-    width: 100%;
+    width: auto;
     justify-content: flex-end;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   .chat-close,
@@ -2486,6 +2488,9 @@ function toggleStorySpeech() {
     padding: 10px 10px 8px;
     gap: 10px;
     min-height: 0;
+    flex: 0 1 auto;
+    max-height: min(calc(var(--mq-vh, 1vh) * 36), 280px);
+    overflow: auto;
   }
 
   .message-row {
