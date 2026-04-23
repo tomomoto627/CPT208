@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
 
 .splash-inner {
   width: min(100%, 400px);
-  min-height: 100dvh;
+  min-height: calc(var(--mq-vh, 1vh) * 100);
   padding: max(76px, calc(var(--mq-safe-top) + 56px)) 26px
     max(84px, calc(var(--mq-safe-bottom) + 58px));
   display: flex;

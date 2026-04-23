@@ -144,7 +144,7 @@ async function submit() {
 
 <style scoped>
 .auth-screen {
-  min-height: 100dvh;
+  min-height: calc(var(--mq-vh, 1vh) * 100);
   display: flex;
   flex-direction: column;
   background: #f4eee3;

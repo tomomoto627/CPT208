@@ -8,6 +8,8 @@
   --mq-text: #1f2937;
   --mq-text-muted: #6b7280;
   --mq-border: rgba(31, 41, 55, 0.14);
+  --mq-vh: 1vh;
+  --mq-vw: 1vw;
   --mq-safe-top: env(safe-area-inset-top, 0px);
   --mq-safe-bottom: env(safe-area-inset-bottom, 0px);
   --mq-nav-h: 56px;
@@ -28,8 +30,7 @@ html {
 }
 
 body {
-  min-height: 100%;
-  min-height: 100dvh;
+  min-height: calc(var(--mq-vh, 1vh) * 100);
   color: var(--mq-text);
   background: var(--mq-bg);
   line-height: 1.5;
@@ -46,7 +47,7 @@ body {
 }
 
 #app {
-  min-height: 100dvh;
+  min-height: calc(var(--mq-vh, 1vh) * 100);
   max-width: 480px;
   margin: 0 auto;
 }

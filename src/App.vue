@@ -194,7 +194,7 @@ function leaveProfile() {
 
 <style scoped>
 .app-screen {
-  min-height: 100dvh;
+  min-height: calc(var(--mq-vh, 1vh) * 100);
   background: #ffffff;
   --mq-bg: #ffffff;
 }
@@ -202,13 +202,14 @@ function leaveProfile() {
 .shell {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: calc(var(--mq-vh, 1vh) * 100);
   padding-top: var(--mq-safe-top);
   background: #ffffff;
 }
 
 .main {
   flex: 1;
+  min-height: 0;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   padding: 16px 16px calc(var(--mq-nav-h) + var(--mq-safe-bottom) + 20px);

@@ -1289,7 +1289,7 @@ onUnmounted(() => {
 .route-detail-panel {
   width: 100%;
   max-width: 480px;
-  max-height: min(72dvh, 520px);
+  max-height: min(calc(var(--mq-vh, 1vh) * 72), 520px);
   overflow-y: auto;
   border-radius: 16px;
   background: #fffdf8;
@@ -1391,7 +1391,7 @@ onUnmounted(() => {
 
   .route-detail-panel {
     max-width: none;
-    max-height: calc(100dvh - 16px - var(--mq-safe-bottom));
+    max-height: calc(var(--mq-vh, 1vh) * 100 - 16px - var(--mq-safe-bottom));
     padding: 12px;
     border-radius: 14px;
   }
@@ -1404,6 +1404,107 @@ onUnmounted(() => {
   .route-detail-hint,
   .route-detail-list {
     font-size: 0.8rem;
+  }
+
+  .route-chat-sheet {
+    padding: 8px;
+    padding-bottom: max(8px, var(--mq-safe-bottom));
+  }
+
+  .route-chat-panel {
+    max-width: none;
+    height: auto;
+    max-height: calc(var(--mq-vh, 1vh) * 100 - 16px - var(--mq-safe-bottom));
+    border-radius: 16px;
+  }
+
+  .route-chat-panel.fullscreen {
+    width: 100vw;
+    max-width: 100vw;
+    height: calc(var(--mq-vh, 1vh) * 100);
+  }
+
+  .route-chat-head {
+    min-height: auto;
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .route-chat-title-wrap {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 8px;
+    row-gap: 2px;
+  }
+
+  .route-chat-brand {
+    width: 40px;
+    height: 40px;
+  }
+
+  .route-chat-title {
+    font-size: 0.96rem;
+    line-height: 1.12;
+  }
+
+  .route-chat-sub {
+    font-size: 0.66rem;
+    line-height: 1.22;
+  }
+
+  .route-chat-head-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .route-chat-close,
+  .route-chat-expand {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
+
+  .route-chat-body {
+    padding: 10px 10px 8px;
+    gap: 10px;
+    min-height: 0;
+  }
+
+  .route-bubble {
+    max-width: 86%;
+    padding: 12px 14px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+  }
+
+  .route-suggest-row {
+    gap: 8px;
+    padding: 0;
+  }
+
+  .route-suggest-chip {
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 0.74rem;
+  }
+
+  .route-chat-foot {
+    padding: 10px 10px max(10px, var(--mq-safe-bottom));
+    gap: 8px;
+  }
+
+  .route-chat-input {
+    min-height: 50px;
+    border-radius: 25px;
+    padding: 0 14px;
+    font-size: 0.88rem;
+  }
+
+  .route-chat-send {
+    width: 50px;
+    min-height: 50px;
   }
 
 }
@@ -1430,7 +1531,7 @@ onUnmounted(() => {
 .route-chat-panel {
   width: 100%;
   max-width: 520px;
-  height: min(74vh, 560px);
+  height: min(calc(var(--mq-vh, 1vh) * 74), 560px);
   border-radius: 18px 18px 14px 14px;
   background: #fbf8f2;
   border: 1px solid #d8d1bf;
@@ -1443,7 +1544,7 @@ onUnmounted(() => {
 .route-chat-panel.fullscreen {
   width: min(100vw, 480px);
   max-width: 480px;
-  height: 100dvh;
+  height: calc(var(--mq-vh, 1vh) * 100);
   border-radius: 0;
   border: none;
 }
@@ -1773,5 +1874,3 @@ onUnmounted(() => {
 }
 
 </style>
-
-
