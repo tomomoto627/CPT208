@@ -1408,14 +1408,16 @@ onUnmounted(() => {
 
   .route-chat-sheet {
     padding: 8px;
-    padding-bottom: max(8px, var(--mq-safe-bottom));
+    padding-bottom: 0;
+    align-items: stretch;
   }
 
   .route-chat-panel {
     max-width: none;
-    height: auto;
-    max-height: calc(var(--mq-vh, 1vh) * 100 - 16px - var(--mq-safe-bottom));
-    border-radius: 16px;
+    width: 100%;
+    height: calc(var(--mq-vh, 1vh) * 100);
+    max-height: none;
+    border-radius: 0;
   }
 
   .route-chat-panel.fullscreen {
@@ -1942,9 +1944,9 @@ onUnmounted(() => {
   }
 
   .route-chat-body {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     min-height: 0;
-    max-height: min(calc(var(--mq-vh, 1vh) * 36), 280px);
+    max-height: none;
     overflow: auto;
     padding: 10px 10px 8px;
     gap: 10px;

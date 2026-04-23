@@ -2413,15 +2413,16 @@ function toggleStorySpeech() {
 
   .chat-sheet {
     padding: 8px;
-    padding-bottom: max(8px, var(--mq-safe-bottom));
+    padding-bottom: 0;
+    align-items: stretch;
   }
 
   .chat-panel {
     width: 100%;
     max-width: none;
-    height: auto;
-    max-height: calc(var(--mq-vh, 1vh) * 100 - 16px - var(--mq-safe-bottom));
-    border-radius: 16px;
+    height: calc(var(--mq-vh, 1vh) * 100);
+    max-height: none;
+    border-radius: 0;
   }
 
   .chat-panel.fullscreen {
@@ -2488,8 +2489,8 @@ function toggleStorySpeech() {
     padding: 10px 10px 8px;
     gap: 10px;
     min-height: 0;
-    flex: 0 1 auto;
-    max-height: min(calc(var(--mq-vh, 1vh) * 36), 280px);
+    flex: 1 1 auto;
+    max-height: none;
     overflow: auto;
   }
 
