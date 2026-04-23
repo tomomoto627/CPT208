@@ -811,13 +811,13 @@ function toggleStorySpeech() {
       <span>Place the QR code or artifact in the frame, then tap Scan.</span>
     </p>
     <div class="scan-controls">
-      <button type="button" class="scan-btn" @click="runScan">
+      <button type="button" class="scan-btn" :disabled="scanBusy || !stream" @click="runScan">
         <span class="scan-btn-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M4 8V5h3M20 8V5h-3M4 16v3h3M20 16v3h-3M7.5 12h9" />
           </svg>
         </span>
-        <span>Scan</span>
+        <span>{{ scanBusy ? "Analyzing..." : "Scan" }}</span>
       </button>
       <p v-if="scanStatus" class="scan-feedback">
         {{ scanStatus }}
@@ -1284,18 +1284,17 @@ function toggleStorySpeech() {
   z-index: 61;
   min-height: 54px;
   border-radius: 14px;
-  background: linear-gradient(180deg, #8ea27a 0%, #6f855c 100%);
-  color: #f7f3ec;
+  background: linear-gradient(180deg, #d9e3d2 0%, #c8d6bf 100%);
+  color: #44533f;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  border: 1px solid #657a55;
-  box-shadow: 0 8px 18px rgba(63, 84, 52, 0.28);
+  border: 1px solid #adc19f;
+  box-shadow: 0 8px 18px rgba(95, 122, 86, 0.22);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: auto;
 }
 
 .scan-btn-icon {
@@ -1326,7 +1325,6 @@ function toggleStorySpeech() {
   line-height: 1.45;
   text-align: center;
   color: #5d503d;
-  text-shadow: 0 1px 6px rgba(250, 243, 233, 0.55);
 }
 
 .scan-feedback.error {

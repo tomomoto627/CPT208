@@ -701,9 +701,9 @@ onMounted(() => {
   gap: 10px;
   padding: 11px;
   border-radius: 16px;
-  background: #f1f6ef;
-  border: 1px solid rgba(126, 151, 109, 0.26);
-  box-shadow: 0 5px 14px rgba(63, 84, 52, 0.08);
+  background: linear-gradient(180deg, #f7fbf4 0%, #eef6e8 100%);
+  border: 1px solid rgba(176, 198, 165, 0.45);
+  box-shadow: 0 5px 14px rgba(92, 122, 84, 0.08);
   cursor: pointer;
   align-items: center;
 }

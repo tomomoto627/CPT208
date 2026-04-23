@@ -176,7 +176,7 @@ function shortStory(text, limit = 86) {
 }
 
 .stats-card.expanded {
-  border-color: rgba(126, 151, 109, 0.72);
+  border-color: rgba(159, 184, 150, 0.9);
   background: #f4f8f1;
 }
 
@@ -195,7 +195,7 @@ function shortStory(text, limit = 86) {
 }
 
 .stats.active {
-  background: #eef5ea;
+  background: #f3f9ee;
 }
 
 .theme-icon {
@@ -262,7 +262,7 @@ function shortStory(text, limit = 86) {
 }
 
 .ring-progress {
-  stroke: #7e976d;
+  stroke: #9ab889;
   stroke-dasharray: 94.25;
   transition: stroke-dashoffset 0.35s ease;
 }
@@ -300,7 +300,7 @@ function shortStory(text, limit = 86) {
 
 .theme-inline {
   padding: 0 12px 12px;
-  background: #eef5ea;
+  background: #f3f9ee;
 }
 
 .list {
