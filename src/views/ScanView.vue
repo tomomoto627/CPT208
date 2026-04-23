@@ -79,6 +79,14 @@ let voiceChangeHandler = null;
 /** Incrementing token used to ignore stale getUserMedia calls during fast tab switches. */
 let cameraEpoch = 0;
 
+const onInputFocus = () => {
+  nextTick(() => {
+    if (chatBodyRef.value) {
+      chatBodyRef.value.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  });
+};
+
 const VOICE_LANGUAGE_PRESETS = [
   { code: "en-US", label: "English (US)", country: "US", recommended: true },
   { code: "en-GB", label: "English (UK)", country: "GB", recommended: true },
@@ -1021,6 +1029,7 @@ function toggleStorySpeech() {
             type="text"
             placeholder="Ask about this artifact..."
             :disabled="chatSending"
+            @focus="onInputFocus"
           />
           <button
             type="submit"
@@ -2359,7 +2368,7 @@ function toggleStorySpeech() {
     font-size: 0.92rem;
   }
 
-  /* 弹窗遮罩层 */
+ /* 弹窗遮罩层 */
 .chat-sheet {
     padding: 8px;
     padding-bottom: 0;
@@ -2370,11 +2379,11 @@ function toggleStorySpeech() {
 .chat-panel {
     width: 100%;
     max-width: none;
-    height: 100dvh;           /* 修改: 动态视口高度，随键盘变化 */
-    max-height: 100dvh;       /* 修改: 最大高度也限制为动态视口 */
+    height: 100dvh;           /* 动态视口高度，随键盘变化 */
+    max-height: 100dvh;
     border-radius: 0;
-    display: flex;             /* 修改: 弹窗 flex 布局 */
-    flex-direction: column;    /* 修改: 上下排列，消息区滚动，底栏固定 */
+    display: flex;             /* 弹窗 flex 布局 */
+    flex-direction: column;    /* 上下排列，消息区滚动，底栏固定 */
 }
 
 /* 顶部头部 */
@@ -2436,8 +2445,8 @@ function toggleStorySpeech() {
     padding: 10px 10px 8px;
     gap: 10px;
     min-height: 0;
-    flex: 1 1 auto;           /* 修改: 占据剩余空间 */
-    overflow-y: auto;          /* 修改: 可滚动 */
+    flex: 1 1 auto;           /* 占据剩余空间 */
+    overflow-y: auto;          /* 可滚动 */
     max-height: none;
 }
 
@@ -2464,9 +2473,9 @@ function toggleStorySpeech() {
 
 /* 底部输入栏 */
 .chat-foot {
-    flex-shrink: 0;            /* 修改: 底栏固定不被压缩 */
-    display: flex;              /* 修改: 弹性布局 */
-    padding: 10px 10px max(10px, env(safe-area-inset-bottom)); /* 修改: safe-area 兼容 iPhone notch */
+    flex-shrink: 0;            /* 底栏固定不被压缩 */
+    display: flex;              /* 弹性布局 */
+    padding: 10px 10px max(10px, env(safe-area-inset-bottom)); /* safe-area 兼容 iPhone notch */
     gap: 8px;
 }
 
@@ -2476,7 +2485,7 @@ function toggleStorySpeech() {
     border-radius: 25px;
     padding: 0 14px;
     font-size: 0.88rem;
-    flex: 1;                     /* 修改: 自动填充底栏剩余空间 */
+    flex: 1;                     /* 填充底栏剩余空间 */
 }
 
 /* 发送按钮 */

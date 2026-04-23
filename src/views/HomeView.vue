@@ -8,6 +8,14 @@ import customizeIcon from "@/assets/customize-icon.png";
 import routeAiHeaderIcon from "@/assets/route-ai-header-icon.png";
 import { streamFetch } from "@/utils/api";
 
+const onRouteInputFocus = () => {
+  nextTick(() => {
+    if (routeChatBodyRef.value) {
+      routeChatBodyRef.value.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  });
+};
+
 const zoneMeta = {
   h1: {
     roomLabel: "West Hall",
@@ -635,6 +643,7 @@ onUnmounted(() => {
             type="text"
             placeholder="Ask for a route..."
             :disabled="routeChatSending"
+            @focus="onRouteInputFocus"
           />
           <button
             type="submit"
@@ -1832,11 +1841,12 @@ onUnmounted(() => {
 
   .route-chat-panel {
     max-width: none;
-    height: 100dvh;          /* 修改: 动态视口高度，随键盘变化 */
-    max-height: 100dvh;      /* 修改: 最大高度也限制为动态视口 */
+    width: 100%;
+    height: 100dvh;           /* 动态视口高度，随键盘变化 */
+    max-height: 100dvh;       /* 最大高度也限制为动态视口 */
     border-radius: 0;
-    display: flex;            /* 修改: 弹窗 flex 布局 */
-    flex-direction: column;   /* 修改: 上下排列，消息区滚动，底栏固定 */
+    display: flex;             /* 弹窗 flex 布局 */
+    flex-direction: column;    /* 上下排列，消息区滚动，底栏固定 */
   }
 
   .route-chat-head {
@@ -1884,10 +1894,11 @@ onUnmounted(() => {
     font-size: 0.7rem;
   }
 
+  /* 消息区滚动 */
   .route-chat-body {
-    flex: 1 1 auto;           /* 修改: 保证消息区占据剩余空间 */
+    flex: 1 1 auto;           /* 占据剩余空间 */
     min-height: 0;
-    overflow-y: auto;          /* 修改: 消息区可滚动 */
+    overflow-y: auto;          /* 可滚动 */
     padding: 10px 10px 8px;
     gap: 10px;
   }
@@ -1919,10 +1930,11 @@ onUnmounted(() => {
     font-size: 0.72rem;
   }
 
+  /* 底栏固定 */
   .route-chat-foot {
-    flex-shrink: 0;           /* 修改: 保证底栏固定不被压缩 */
-    display: flex;             /* 修改: 弹性布局 */
-    padding: 10px 10px max(10px, env(safe-area-inset-bottom));  /* 修改: safe-area 兼容 iPhone notch */
+    flex-shrink: 0;           /* 底栏固定不被压缩 */
+    display: flex;             /* 弹性布局 */
+    padding: 10px 10px max(10px, env(safe-area-inset-bottom));  /* safe-area 兼容 iPhone notch */
     gap: 8px;
   }
 
@@ -1931,6 +1943,7 @@ onUnmounted(() => {
     border-radius: 24px;
     padding: 0 14px;
     font-size: 0.87rem;
+    flex: 1;                   /* 占满底栏剩余空间 */
   }
 
   .route-chat-send {
